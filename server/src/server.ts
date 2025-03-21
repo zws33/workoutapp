@@ -1,8 +1,7 @@
 // server.ts
 import express from 'express';
-import { google, sheets_v4 } from 'googleapis';
+import { google } from 'googleapis';
 import dotenv from 'dotenv';
-import path from 'path';
 import { OAuth2Client } from 'google-auth-library';
 
 // Load environment variables
@@ -95,7 +94,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
   }
 });
 
-// Endpoint to list available Google Sheets
+// Endpoint to list available Google Sheets in a specific folder
 app.get('/api/sheets/list', async (req, res) => {
   const userId = req.headers['user-id'] as string;
   const userToken = userTokens.get(userId);
@@ -109,10 +108,12 @@ app.get('/api/sheets/list', async (req, res) => {
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
     const response = await drive.files.list({
-      q: "mimeType='application/vnd.google-apps.spreadsheet'",
+      q: `'1mqcs93TiDXV5OKU-AwaTf8x5YTYcWiAV' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
       fields: 'files(id, name)',
       spaces: 'drive',
     });
+
+    console.log('Fetched sheets:', response.data.files);
 
     res.json({ sheets: response.data.files });
   } catch (error: any) {
