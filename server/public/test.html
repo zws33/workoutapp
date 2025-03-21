@@ -9,6 +9,9 @@
         ul { list-style-type: none; padding: 0; }
         li { cursor: pointer; padding: 5px; border: 1px solid #ddd; margin: 5px 0; }
         li:hover { background-color: #f0f0f0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
     </style>
 </head>
 <body>
@@ -16,17 +19,26 @@
     
     <button onclick="startAuth()">1. Start Authentication</button>
     <button onclick="listSheets()">2. List Sheets</button>
-    <div>
-        <h3>Selected Sheet Data:</h3>
-        <input type="text" id="sheetId" placeholder="Enter Sheet ID">
-        <button onclick="getWorkoutData()">3. Get Workout Data</button>
-    </div>
 
     <h3>Google Sheets:</h3>
     <ul id="sheetsList"></ul>
 
     <h3>Response:</h3>
-    <pre id="response">Results will appear here...</pre>
+    <table id="responseTable">
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Exercise</th>
+                <th>Sets</th>
+                <th>Reps</th>
+                <th>Weight</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Workout data will be inserted here -->
+        </tbody>
+    </table>
 
     <script src="test.js"></script>
 </body>

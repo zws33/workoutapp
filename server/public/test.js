@@ -64,14 +64,27 @@ async function getWorkoutData(sheetId) {
       }
     );
     const data = await response.json();
-    document.getElementById('response').textContent = JSON.stringify(
-      data,
-      null,
-      2
-    );
+    renderWorkoutData(data.workouts);
   } catch (error) {
     document.getElementById('response').textContent = `Error: ${error.message}`;
   }
+}
+
+function renderWorkoutData(workouts) {
+  const tbody = document
+    .getElementById('responseTable')
+    .getElementsByTagName('tbody')[0];
+  tbody.innerHTML = ''; // Clear existing data
+
+  workouts.forEach((workout) => {
+    const row = tbody.insertRow();
+    row.insertCell().textContent = workout.day;
+    row.insertCell().textContent = workout.name;
+    row.insertCell().textContent = workout.sets;
+    row.insertCell().textContent = workout.reps || '';
+    row.insertCell().textContent = workout.weight || '';
+    row.insertCell().textContent = workout.notes || '';
+  });
 }
 
 // Check if we're returning from OAuth

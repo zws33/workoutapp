@@ -107,8 +107,9 @@ app.get('/api/sheets/list', async (req, res) => {
     oauth2Client.setCredentials(userToken);
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
+    const folderId = '1mqcs93TiDXV5OKU-AwaTf8x5YTYcWiAV';
     const response = await drive.files.list({
-      q: `'1mqcs93TiDXV5OKU-AwaTf8x5YTYcWiAV' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
+      q: `'${folderId}' in parents and mimeType='application/vnd.google-apps.spreadsheet'`,
       fields: 'files(id, name)',
       spaces: 'drive',
     });
@@ -165,7 +166,7 @@ async function getWorkoutData(
 
       workouts.push(workout as WorkoutData);
     }
-
+    console.log('Fetched workout data:', workouts);
     return workouts;
   } catch (error) {
     console.error('Error fetching workout data:', error);
