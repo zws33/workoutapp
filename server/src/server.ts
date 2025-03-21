@@ -88,7 +88,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
     const userId = Math.random().toString(36).substring(7);
     userTokens.set(userId, tokens);
 
-    res.redirect(`/test.html?userId=${userId}`);
+    res.redirect(`/index.html?userId=${userId}`);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
