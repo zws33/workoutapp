@@ -1,8 +1,10 @@
 let userId = localStorage.getItem('userId');
 
+const apiUrl = 'https://workout-app-951785297505.us-east1.run.app';
+
 async function startAuth() {
   try {
-    const response = await fetch('http://localhost:3000/api/auth/google');
+    const response = await fetch(`${apiUrl}/api/auth/google`);
     const data = await response.json();
     window.location.href = data.url;
   } catch (error) {
@@ -19,7 +21,7 @@ async function listSheets() {
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/sheets/list`, {
+    const response = await fetch(`${apiUrl}/api/sheets/list`, {
       headers: {
         'user-id': userId,
       },
@@ -55,14 +57,11 @@ async function getWorkoutData(sheetId) {
   }
 
   try {
-    const response = await fetch(
-      `http://localhost:3000/api/workouts/${sheetId}`,
-      {
-        headers: {
-          'user-id': userId,
-        },
-      }
-    );
+    const response = await fetch(`${apiUrl}/api/workouts/${sheetId}`, {
+      headers: {
+        'user-id': userId,
+      },
+    });
     const data = await response.json();
     renderWorkoutData(data.workouts);
   } catch (error) {

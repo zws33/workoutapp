@@ -9,4 +9,5 @@ services:
       - .:/usr/src/app
     environment:
       - NODE_ENV=development
+      - API_URL='https://workout-app-951785297505.us-east1.run.app'
     command: [ "node", "dist/server.js" ]
