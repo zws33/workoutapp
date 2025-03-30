@@ -16,6 +16,9 @@ COPY . .
 # Copy the .env file
 COPY .env .env
 
+# Set environment to production
+ENV NODE_ENV=production
+
 # Compile TypeScript to JavaScript
 RUN npm run build
 

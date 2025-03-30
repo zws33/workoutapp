@@ -1,6 +1,10 @@
 let userId = localStorage.getItem('userId');
 
-const apiUrl = 'https://workout-app-951785297505.us-east1.run.app';
+// Determine environment (default to development)
+const isProd = window.location.hostname !== 'localhost';
+const apiUrl = isProd
+  ? 'https://workout-app-951785297505.us-east1.run.app'
+  : 'http://localhost:3000';
 
 async function startAuth() {
   try {
@@ -8,15 +12,13 @@ async function startAuth() {
     const data = await response.json();
     window.location.href = data.url;
   } catch (error) {
-    document.getElementById('response').textContent = `Error: ${error.message}`;
+    alert(`Error: ${error.message}`);
   }
 }
 
 async function listSheets() {
-  console.log(userId);
   if (!userId) {
-    document.getElementById('response').textContent =
-      'Please authenticate first!';
+    alert('Please authenticate first!');
     return;
   }
 
@@ -36,24 +38,28 @@ async function listSheets() {
       sheetsList.appendChild(li);
     });
   } catch (error) {
-    document.getElementById('response').textContent = `Error: ${error.message}`;
+    alert(`Error: ${error.message}`);
   }
+}
+
+function filterWorkouts() {
+  const selectedDay = document.getElementById('dayFilter').value.toLowerCase();
+  const allWorkouts = JSON.parse(localStorage.getItem('allWorkouts')) || [];
+
+  const filteredWorkouts =
+    selectedDay === 'all'
+      ? allWorkouts
+      : allWorkouts.filter(
+          (workout) => workout.day.toLowerCase() === selectedDay
+        );
+
+  renderWorkoutData(filteredWorkouts);
 }
 
 async function getWorkoutData(sheetId) {
   if (!userId) {
-    document.getElementById('response').textContent =
-      'Please authenticate first!';
+    alert('Please authenticate first!');
     return;
-  }
-
-  if (!sheetId) {
-    sheetId = document.getElementById('sheetId').value;
-    if (!sheetId) {
-      document.getElementById('response').textContent =
-        'Please enter a Sheet ID!';
-      return;
-    }
   }
 
   try {
@@ -63,9 +69,10 @@ async function getWorkoutData(sheetId) {
       },
     });
     const data = await response.json();
+    localStorage.setItem('allWorkouts', JSON.stringify(data.workouts)); // Store all workouts
     renderWorkoutData(data.workouts);
   } catch (error) {
-    document.getElementById('response').textContent = `Error: ${error.message}`;
+    alert(`Error: ${error.message}`);
   }
 }
 
@@ -77,7 +84,6 @@ function renderWorkoutData(workouts) {
 
   workouts.forEach((workout) => {
     const row = tbody.insertRow();
-    row.insertCell().textContent = workout.day;
     row.insertCell().textContent = workout.name;
     row.insertCell().textContent = workout.sets;
     row.insertCell().textContent = workout.reps || '';
@@ -92,6 +98,5 @@ const userIdFromUrl = urlParams.get('userId');
 if (userIdFromUrl) {
   localStorage.setItem('userId', userIdFromUrl);
   userId = userIdFromUrl;
-  document.getElementById('response').textContent =
-    'Authentication successful! UserId stored.';
+  alert('Authentication successful! UserId stored.');
 }

@@ -26,15 +26,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Determine environment (default to development)
+const isProd = process.env.NODE_ENV === 'production';
+const GOOGLE_REDIRECT_URI = isProd
+  ? process.env.GOOGLE_REDIRECT_URI_PROD
+  : process.env.GOOGLE_REDIRECT_URI_DEV;
+const API_URL = isProd ? process.env.API_URL_PROD : process.env.API_URL_DEV;
+
 // OAuth2 configuration
 console.log(
   'Configuring OAuth2 client with redirect URI:',
-  process.env.GOOGLE_REDIRECT_URI
+  GOOGLE_REDIRECT_URI
 );
 const oauth2Client: OAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
+  GOOGLE_REDIRECT_URI
 );
 
 // Store tokens temporarily (in production, use a proper database)
@@ -62,10 +69,7 @@ const headers: string[] = [
 
 // Generate OAuth2 URL
 app.get('/api/auth/google', (req, res) => {
-  console.log(
-    'Generating auth URL with redirect URI:',
-    process.env.GOOGLE_REDIRECT_URI
-  );
+  console.log('Generating auth URL with redirect URI:', GOOGLE_REDIRECT_URI);
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: [

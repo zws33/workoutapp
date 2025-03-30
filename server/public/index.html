@@ -1,33 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Workout App OAuth Test</title>
+    <title>Workout App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; }
-        button { padding: 10px 20px; margin: 10px 0; }
-        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
-        ul { list-style-type: none; padding: 0; }
-        li { cursor: pointer; padding: 5px; border: 1px solid #ddd; margin: 5px 0; }
-        li:hover { background-color: #f0f0f0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        button, select {
+            padding: 10px 20px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            text-align: center;
+        }
+        li:hover {
+            background-color: #f0f0f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        @media (max-width: 600px) {
+            table, th, td {
+                font-size: 14px;
+            }
+            button, select {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Workout App OAuth Test</h1>
+    <h1>Workout App</h1>
     
-    <button onclick="startAuth()">1. Start Authentication</button>
-    <button onclick="listSheets()">2. List Sheets</button>
+    <button onclick="startAuth()">Start Authentication</button>
+    <button onclick="listSheets()">List Sheets</button>
 
     <h3>Google Sheets:</h3>
     <ul id="sheetsList"></ul>
 
-    <h3>Response:</h3>
+    <h3>Filter Workouts:</h3>
+    <select id="dayFilter" onchange="filterWorkouts()">
+        <option value="all">All Days</option>
+        <option value="UPPER">Upper</option>
+        <option value="LOWER">Lower</option>
+        <option value="CORE">Core</option>
+    </select>
+
+    <h3>Workouts:</h3>
     <table id="responseTable">
         <thead>
             <tr>
-                <th>Day</th>
                 <th>Exercise</th>
                 <th>Sets</th>
                 <th>Reps</th>
