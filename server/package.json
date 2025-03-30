@@ -1,6 +1,6 @@
 {
   "name": "workout-tracker-api",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "TypeScript server that exposes workout data from Google Sheets",
   "main": "dist/server.js",
   "scripts": {
