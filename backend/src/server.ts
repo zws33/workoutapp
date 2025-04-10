@@ -1,8 +1,9 @@
 // server.ts
-import express from 'express';
+import express, { NextFunction } from 'express';
 import { google } from 'googleapis';
 import dotenv from 'dotenv';
 import { OAuth2Client } from 'google-auth-library';
+import { Request, Response } from 'express';
 
 // Load environment variables
 dotenv.config();
@@ -18,30 +19,24 @@ app.use(express.static('public'));
 
 // Optional CORS middleware
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', 'http://localhost:5173'); // Replace with your frontend's origin
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header(
     'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
-  );
+    'Content-Type, Authorization, user-id'
+  ); // Include Authorization header
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200); // Handle preflight requests
+  }
   next();
 });
 
 // Determine environment (default to development)
 const isProd = process.env.NODE_ENV === 'production';
-const GOOGLE_REDIRECT_URI = isProd
-  ? process.env.GOOGLE_REDIRECT_URI_PROD
-  : process.env.GOOGLE_REDIRECT_URI_DEV;
-const API_URL = isProd ? process.env.API_URL_PROD : process.env.API_URL_DEV;
 
-// OAuth2 configuration
-console.log(
-  'Configuring OAuth2 client with redirect URI:',
-  GOOGLE_REDIRECT_URI
-);
 const oauth2Client: OAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI
+  process.env.GOOGLE_CLIENT_SECRET
 );
 
 // Store tokens temporarily (in production, use a proper database)
@@ -57,49 +52,34 @@ interface WorkoutData {
   notes?: string;
 }
 
-const headers: string[] = [
-  'Workout',
-  'Group',
-  'Name',
-  'Sets',
-  'Reps',
-  'Weight',
-  'Notes',
-];
-
-// Generate OAuth2 URL
-app.get('/api/auth/google', (req, res) => {
-  console.log('Generating auth URL with redirect URI:', GOOGLE_REDIRECT_URI);
-  const url = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: [
-      'https://www.googleapis.com/auth/spreadsheets.readonly',
-      'https://www.googleapis.com/auth/drive.readonly',
-    ],
-  });
-  console.log('Generated auth URL:', url);
-  res.json({ url });
-});
-
-// OAuth2 callback handler
-app.get('/api/auth/google/callback', async (req, res) => {
-  const { code } = req.query;
-
-  try {
-    const { tokens } = await oauth2Client.getToken(code as string);
-    // In a real application, you would store these tokens securely and associate them with the user
-    // For this example, we'll store them in memory with a random ID
-    const userId = Math.random().toString(36).substring(7);
-    userTokens.set(userId, tokens);
-
-    res.redirect(`/index.html?userId=${userId}`);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+const authenticate = async (req: any, res: any, next: any) => {
+  const idToken = req.headers['authorization']?.split(' ')[1];
+  if (!idToken) {
+    return res.status(401).json({ error: 'Unauthorized: Missing token' });
   }
-});
+  try {
+    const ticket = await oauth2Client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    }
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      name: payload.name,
+    };
+    next();
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+};
 
 // Endpoint to list available Google Sheets in a specific folder
-app.get('/api/sheets/list', async (req, res) => {
+app.get('/api/sheets/list', authenticate, async (req, res) => {
   const userId = req.headers['user-id'] as string;
   const userToken = userTokens.get(userId);
 
