@@ -24,8 +24,6 @@ struct WorkoutTrackerApp: App {
 class AuthViewModel: ObservableObject {
     @Published var isSignedIn = false
     
-    private let clientID = "951785297505-leo3cs9atmgrl42or2clttjer184hl4f.apps.googleusercontent.com"
-    
     init() {
         // Restore previous sign-in if it exists
         if GIDSignIn.sharedInstance.hasPreviousSignIn() {
@@ -46,15 +44,11 @@ class AuthViewModel: ObservableObject {
         // Configure GIDSignIn and sign in
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
         
-        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { [weak self] result, error in
-            guard let result = result else {
-                print("Error signing in: \(error?.localizedDescription ?? "Unknown error")")
-                completion(false)
-                return
-            }
-            
-            self?.isSignedIn = true
-            completion(true)
+        GIDSignIn.sharedInstance.signIn(
+            withPresenting: rootViewController
+        ) { result, error in
+            self.isSignedIn = error == nil
+            completion(error == nil)
         }
     }
     
@@ -68,13 +62,14 @@ class AuthViewModel: ObservableObject {
 
 struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @StateObject var workoutViewModel = WorkoutViewModel(spreadsheetId: "YOUR_SPREADSHEET_ID")
+    @StateObject var workoutViewModel = WorkoutViewModel()
     
     var body: some View {
         if !authViewModel.isSignedIn {
             SignInView()
         } else {
             WorkoutListView(viewModel: workoutViewModel)
+                .navigationTitle("Workout Plan")
         }
     }
 }
@@ -143,8 +138,8 @@ struct WorkoutListView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     
     var body: some View {
-        NavigationView {
-            Group {
+        NavigationStack {
+            ZStack {
                 if viewModel.isLoading {
                     ProgressView("Loading workout data...")
                 } else if let errorMessage = viewModel.errorMessage {
@@ -155,7 +150,7 @@ struct WorkoutListView: View {
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
                         Button("Try Again") {
-                            viewModel.loadWorkoutFromGoogleSheets()
+                            viewModel.getData()
                         }
                         .padding()
                         .background(Color.blue)
@@ -163,21 +158,14 @@ struct WorkoutListView: View {
                         .cornerRadius(8)
                     }
                     .padding()
-                } else if let program = viewModel.workoutProgram {
-                    List {
-                        ForEach(program.sessions) { session in
-                            NavigationLink(destination: SessionDetailView(session: session)) {
-                                Text(session.name)
-                                    .font(.headline)
-                            }
-                        }
-                    }
+                } else if viewModel.workouts.count > 0 {
+                    WorkoutSelectorView(viewModel: viewModel)
                 } else {
                     VStack(spacing: 16) {
                         Text("No workout data loaded")
                             .font(.headline)
                         Button("Load Workout Data") {
-                            viewModel.loadWorkoutFromGoogleSheets()
+                            viewModel.getData()
                         }
                         .padding()
                         .background(Color.blue)
@@ -194,353 +182,138 @@ struct WorkoutListView: View {
                         authViewModel.signOut()
                     }
                 }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        viewModel.loadWorkoutFromGoogleSheets()
+                        viewModel.getData()
                     }) {
                         Image(systemName: "arrow.clockwise")
                     }
                 }
             }
-            .onAppear {
-                if viewModel.workoutProgram == nil && !viewModel.isLoading {
-                    viewModel.loadWorkoutFromGoogleSheets()
-                }
-            }
         }
     }
 }
 
-// MARK: - Session Detail View
-
-struct SessionDetailView: View {
-    let session: WorkoutSession
-    
-    var body: some View {
-        List {
-            // Regular exercises
-            if !session.exercises.isEmpty {
-                Section(header: Text("Exercises")) {
-                    ForEach(session.exercises) { exercise in
-                        ExerciseRow(exercise: exercise)
-                    }
-                }
-            }
-            
-            // Metcons
-            ForEach(session.metcons) { metcon in
-                Section(header: Text(metcon.title)) {
-                    Text(metcon.description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    ForEach(metcon.exercises) { exercise in
-                        ExerciseRow(exercise: exercise)
-                    }
-                }
-            }
-        }
-        .navigationTitle(session.name)
-    }
-}
-
-// MARK: - Exercise Row
-
-struct ExerciseRow: View {
-    let exercise: WorkoutExercise
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(exercise.name)
-                .font(.headline)
-            
-            // Only show sets/reps/weight if they're not empty
-            if !exercise.sets.isEmpty || !exercise.reps.isEmpty || !exercise.weight.isEmpty {
-                HStack(spacing: 12) {
-                    if !exercise.sets.isEmpty {
-                        Label("\(exercise.sets) sets", systemImage: "number.circle")
-                            .font(.footnote)
-                    }
-                    
-                    if !exercise.reps.isEmpty {
-                        Label("\(exercise.reps) reps", systemImage: "repeat")
-                            .font(.footnote)
-                    }
-                    
-                    if !exercise.weight.isEmpty {
-                        Label("\(exercise.weight)", systemImage: "scalemass")
-                            .font(.footnote)
-                    }
-                }
-            }
-            
-            // Show notes if available
-            if !exercise.notes.isEmpty {
-                Text(exercise.notes)
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 2)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-}
-
-// Sample Preview
-struct ExerciseRow_Previews: PreviewProvider {
-    static var previews: some View {
-        ExerciseRow(exercise: WorkoutExercise(
-            name: "Bench Press",
-            sets: "3",
-            reps: "10",
-            weight: "135 lbs",
-            notes: "Focus on form"
-        ))
-        .previewLayout(.sizeThatFits)
-        .padding()
-    }
-}
-
-// MARK: - Data Models
-
-// Main workout program struct
-struct WorkoutProgram: Identifiable, Codable {
-    let id = UUID()
-    let title: String        // e.g., "Zach Smith Phase 2 Week 2"
-    var sessions: [WorkoutSession]
-}
-
-// Individual workout session (e.g., "Day 1 Upper", "Day 2 Lower", etc.)
-struct WorkoutSession: Identifiable, Codable {
-    let id = UUID()
-    let name: String         // e.g., "Day 1 Upper", "Day 2 Lower"
-    var exercises: [WorkoutExercise]
-    var metcons: [Metcon]    // Metabolic conditioning / circuit components
-}
-
-// Individual exercise within a workout session
-struct WorkoutExercise: Identifiable, Codable {
-    let id = UUID()
-    let name: String         // e.g., "Seated DB Arnold Press"
-    let sets: String         // Using String to accommodate various formats
-    let reps: String         // Using String for complex patterns like "10"-10"-6"
-    let weight: String       // Using String for values like "40 (35)"
-    let notes: String
-    var isMetconExercise: Bool = false // Flag to indicate if it's part of a metcon
-    
-    // Computed property to display formatted weight, handling empty cases
-    var formattedWeight: String {
-        return weight.isEmpty ? "Bodyweight" : weight
-    }
-}
-
-// Metcon (Metabolic Conditioning) section
-struct Metcon: Identifiable, Codable {
-    let id = UUID()
-    let title: String        // e.g., "METCON", "AMRAP 10 min"
-    var description: String  // e.g., "4 Rounds for time"
-    var exercises: [WorkoutExercise]
-    var score: String        // For tracking performance
-}
-
-// MARK: - Parsing Logic
-
-class WorkoutParser {
-    
-    // Parse Google Sheets API data into WorkoutProgram
-    static func parseWorkoutProgram(from sheetsData: [[String]], title: String) -> WorkoutProgram {
-        var program = WorkoutProgram(title: title, sessions: [])
-        var currentSession: WorkoutSession?
-        var currentMetcon: Metcon?
-        var exercises: [WorkoutExercise] = []
-        var metconExercises: [WorkoutExercise] = []
-        
-        // Get headers from the first row
-        guard let headers = sheetsData.first, !headers.isEmpty else {
-            return program
-        }
-        
-        // Find column indices
-        let exerciseIndex = 0 // Assuming first column is exercise name
-        let setsIndex = headers.firstIndex(of: "Sets") ?? 1
-        let repsIndex = headers.firstIndex(of: "Reps") ?? 2
-        let weightIndex = headers.firstIndex(of: "Weight") ?? 3
-        let notesIndex = headers.firstIndex(of: "Notes") ?? 4
-        
-        // Process data rows (skip header row)
-        for i in 1..<sheetsData.count {
-            let row = sheetsData[i]
-            guard row.count >= max(exerciseIndex, setsIndex, repsIndex, weightIndex, notesIndex) + 1 else {
-                continue
-            }
-            
-            let exercise = row[exerciseIndex]
-            let sets = row.indices.contains(setsIndex) ? row[setsIndex] : ""
-            let reps = row.indices.contains(repsIndex) ? row[repsIndex] : ""
-            let weight = row.indices.contains(weightIndex) ? row[weightIndex] : ""
-            let notes = row.indices.contains(notesIndex) ? row[notesIndex] : ""
-            
-            // Skip empty rows
-            if exercise.isEmpty && sets.isEmpty && reps.isEmpty {
-                continue
-            }
-            
-            // Detect new session (Day 1, Day 2, etc.)
-            if exercise.lowercased().contains("day") && currentSession != nil {
-                // Save previous session
-                if let session = currentSession {
-                    // Add any pending metcon
-                    if let metcon = currentMetcon, !metconExercises.isEmpty {
-                        var updatedMetcon = metcon
-                        updatedMetcon.exercises = metconExercises
-                        var updatedSession = session
-                        updatedSession.metcons.append(updatedMetcon)
-                        currentSession = updatedSession
-                        metconExercises = []
-                        currentMetcon = nil
-                    }
-                    
-                    var updatedSession = session
-                    updatedSession.exercises = exercises
-                    program.sessions.append(updatedSession)
-                }
-                
-                // Start new session
-                currentSession = WorkoutSession(name: exercise, exercises: [], metcons: [])
-                exercises = []
-                continue
-            }
-            
-            // Detect METCON sections
-            if exercise.contains("METCON") || exercise.contains("AMRAP") || exercise.contains("E3MOM") {
-                // Save any pending exercises to the current session
-                if !exercises.isEmpty && currentSession != nil {
-                    var updatedSession = currentSession!
-                    updatedSession.exercises = exercises
-                    currentSession = updatedSession
-                    exercises = []
-                }
-                
-                // Start new metcon
-                currentMetcon = Metcon(title: exercise, description: "", exercises: [], score: "")
-                continue
-            }
-            
-            // Handle special metcon description rows (like "4 Rounds for time")
-            if currentMetcon != nil && exercise.contains("Round") {
-                var updatedMetcon = currentMetcon!
-                updatedMetcon.description = exercise
-                currentMetcon = updatedMetcon
-                continue
-            }
-            
-            // Create exercise object
-            let workoutExercise = WorkoutExercise(
-                name: exercise,
-                sets: sets,
-                reps: reps,
-                weight: weight,
-                notes: notes,
-                isMetconExercise: currentMetcon != nil
-            )
-            
-            // Add to appropriate collection
-            if currentMetcon != nil {
-                metconExercises.append(workoutExercise)
-            } else {
-                exercises.append(workoutExercise)
-            }
-        }
-        
-        // Add final session
-        if let session = currentSession {
-            // Add any pending metcon
-            if let metcon = currentMetcon, !metconExercises.isEmpty {
-                var updatedMetcon = metcon
-                updatedMetcon.exercises = metconExercises
-                var updatedSession = session
-                updatedSession.metcons.append(updatedMetcon)
-                currentSession = updatedSession
-            }
-            
-            var updatedSession = session
-            updatedSession.exercises = exercises
-            program.sessions.append(updatedSession)
-        }
-        
-        return program
-    }
-    
-    // Helper function to convert Google Sheets API response to our required format
-    static func parseGoogleSheetsResponse(_ response: GTLRSheets_ValueRange) -> [[String]] {
-        guard let values = response.values as? [[String]] else {
-            return []
-        }
-        return values
-    }
-}
-
-// MARK: - Google Sheets Integration
+// MARK: - WorkoutViewModel
 
 // ViewModel for handling Google Sheets data
 class WorkoutViewModel: ObservableObject {
-    @Published var workoutProgram: WorkoutProgram?
+    
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var workouts: [String: [Exercise]] = [:]
     
-    private let sheetsService = GTLRSheetsService()
-    private let spreadsheetId: String
-    
-    init(spreadsheetId: String) {
-        self.spreadsheetId = spreadsheetId
-        configureService()
-    }
-    
-    private func configureService() {
-        // Configure the sheets service with OAuth token
-        if let user = GIDSignIn.sharedInstance.currentUser {
-            sheetsService.authorizer = user.fetcherAuthorizer
-        }
-    }
-    
-    func loadWorkoutFromGoogleSheets(sheetName: String = "Sheet1", range: String = "A:Z") {
-        guard GIDSignIn.sharedInstance.currentUser != nil else {
-            self.errorMessage = "Not signed in to Google. Please sign in first."
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        
-        // Create the query to fetch the spreadsheet values
-        let fullRange = "\(sheetName)!\(range)"
-        let query = GTLRSheetsQuery_SpreadsheetsValuesGet.query(withSpreadsheetId: spreadsheetId, range: fullRange)
-        
-        sheetsService.executeQuery(query) { [weak self] (ticket, result, error) in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                
-                if let error = error {
-                    self?.errorMessage = "Error fetching data: \(error.localizedDescription)"
-                    return
+    func getData() {
+        NetworkManager.shared.fetchSheetData { result in
+            switch result {
+            case .success(let data):
+                DispatchQueue.main.async {
+                    self.workouts = data
                 }
                 
-                guard let valueRange = result as? GTLRSheets_ValueRange,
-                      let values = valueRange.values as? [[String]] else {
-                    self?.errorMessage = "Invalid data format received from Google Sheets"
-                    return
-                }
-                
-                // Create workout program from sheets data
-                let program = WorkoutParser.parseWorkoutProgram(
-                    from: values,
-                    title: "Workout Program"
-                )
-                
-                // Update published property
-                self?.workoutProgram = program
+            case .failure(let error):
+                print("Error fetching sheet names: \(error)")
             }
         }
     }
 }
+
+enum NetworkError: Error {
+    case invalidURL
+    case requestFailed(Error)
+    case invalidResponse
+    case noData
+    case decodingFailed(Error)
+}
+
+class NetworkManager {
+    static let shared = NetworkManager()
+    private let session = URLSession.shared
+    
+    private init() {}
+    
+    func fetchSheetData(completion: @escaping (Result<[String:[Exercise]], NetworkError>) -> Void) {
+        let url = URL(string: "\(PROD_URL)/api/sheets/Week 1")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        guard let idToken = GIDSignIn.sharedInstance.currentUser?.idToken else {
+            completion(.failure(.invalidURL))
+            return
+        }
+        print(idToken.description)
+        
+        request.addValue("Bearer \(idToken.tokenString)", forHTTPHeaderField: "Authorization")
+        let task = session.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(.requestFailed(error)))
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                completion(.failure(.invalidResponse))
+                return
+            }
+            
+            guard let data = data else {
+                completion(.failure(.noData))
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                let exercises = try decoder.decode([String:[Exercise]].self, from: data)
+                
+                // Return result on main thread for UI updates
+                DispatchQueue.main.async {
+                    completion(.success(exercises))
+                }
+            } catch {
+                completion(.failure(.decodingFailed(error)))
+            }
+        }
+        task.resume()
+    }
+}
+
+func prettyPrintData(data: Data) {
+    if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
+       let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
+        print(String(decoding: jsonData, as: UTF8.self))
+    } else {
+        print("json data malformed")
+    }
+}
+
+// MARK: - Data model
+struct Exercise: Codable, Identifiable {
+    let day: String
+    let group: String
+    let name: String
+    let sets: String
+    let reps: String
+    let weight: String
+    let notes: String
+    
+    // Add an id for List to use
+    var id: String {
+        // Create a unique identifier by combining fields
+        return "\(day)-\(group)-\(name)"
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case day = "Day"
+        case group = "Group"
+        case name = "Name"
+        case sets = "Sets"
+        case reps = "Reps"
+        case weight = "Weight"
+        case notes = "Notes"
+    }
+}
+
+let DEV_URL = "http://localhost:3000"
+
+let PROD_URL = "https://zwsmith.me"
+
