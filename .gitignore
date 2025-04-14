@@ -9,7 +9,10 @@ yarn-error.log*
 .env
 
 # Service account key
-*service-account-key.json
+*credentials.json
+
+# IOS Secrets
+secret.swift
 
 # Logs
 logs
