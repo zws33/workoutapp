@@ -7,72 +7,104 @@
 
 import SwiftUI
 
-struct WorkoutSelectorView: View {
+struct WorkoutView: View {
     @ObservedObject var viewModel: WorkoutViewModel
     @State private var selectedDay: String?
-    
+
     var body: some View {
         VStack {
-            // Day selector
-            dayPicker
-            
-            // Exercise list for selected day
-            exerciseList
-            
+            if viewModel.isLoading {
+                ProgressView("Loading workouts...")
+                    .padding()
+            } else if let errorMessage = viewModel.errorMessage {
+                errorView(errorMessage)
+            } else if viewModel.workouts.isEmpty {
+                loadButton("Load Workout Data")
+            } else {
+                dayPicker
+                exerciseList
+            }
+
             Spacer()
         }
-        .onAppear {
-            // Load data when view appears
-            if viewModel.workouts.isEmpty {
-                viewModel.getData()
-            }
-            
-            // Set default selection to first day if available
-            if selectedDay == nil, let firstDay = viewModel.workouts.keys.sorted().first {
-                selectedDay = firstDay
+        .task {
+            await viewModel.getData()
+        }
+        .onChange(of: viewModel.workouts) {
+            if selectedDay == nil, !viewModel.workouts.isEmpty {
+                selectedDay = viewModel.workouts.keys.sorted().first
             }
         }
+        .padding()
     }
-    
-    // Selector component
+
+    // Day picker
     private var dayPicker: some View {
         Picker("Select Workout Day", selection: $selectedDay) {
-            Text("Select a day").tag(nil as String?)
-            
+            Text("Select a workout day").tag(nil as String?)
             ForEach(viewModel.workouts.keys.sorted(), id: \.self) { day in
                 Text(day).tag(day as String?)
             }
         }
         .pickerStyle(MenuPickerStyle())
-        .padding()
-        .disabled(viewModel.workouts.isEmpty)
     }
-    
-    // List component that displays exercises for the selected day
+
+    // Exercises List
     private var exerciseList: some View {
-        Group {
-            if viewModel.isLoading {
-                ProgressView("Loading workouts...")
-            } else if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .padding()
-            } else if viewModel.workouts.isEmpty {
-                Text("No workouts available")
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else if let selectedDay = selectedDay, let exercises = viewModel.workouts[selectedDay] {
-                List {
-                    ForEach(exercises) { exercise in
-                        ExerciseRow(exercise: exercise)
-                    }
+        List {
+            if let day = selectedDay, let exercises = viewModel.workouts[day] {
+                ForEach(exercises){ exercise in
+                    ExerciseRow(exercise: exercise)
                 }
             } else {
                 Text("Select a workout day")
                     .foregroundColor(.secondary)
-                    .padding()
             }
         }
+    }
+
+    // Error view helper
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Text("Error")
+                .font(.headline)
+            Text(message)
+                .foregroundColor(.red)
+                .multilineTextAlignment(.center)
+            loadButton("Try Again")
+        }
+    }
+
+    // Load button helper
+    private func loadButton(_ label: String) -> some View {
+        Button(label) {
+            Task { await viewModel.getData() }
+        }
+        .padding()
+        .background(Color.blue)
+        .foregroundColor(.white)
+        .cornerRadius(8)
+    }
+}
+
+@MainActor
+struct WorkoutSelectorView_Previews: PreviewProvider {
+    static var previews: some View {
+        WorkoutView(viewModel: mockViewModel)
+    }
+
+    static var mockViewModel: WorkoutViewModel {
+        let vm = WorkoutViewModel(repository: FakeWorkoutRepository())
+        vm.workouts = [
+            "Day 1": [
+                Exercise(day: "Day 1", group: "Push", name: "Bench Press", sets: "3", reps: "10", weight: "135", notes: "Focus on control"),
+                Exercise(day: "Day 1", group: "Push", name: "Overhead Press", sets: "3", reps: "8", weight: "95", notes: "")
+            ],
+            "Day 2": [
+                Exercise(day: "Day 2", group: "Pull", name: "Deadlift", sets: "5", reps: "5", weight: "225", notes: "Keep back tight")
+            ]
+        ]
+        return vm
     }
 }
 
