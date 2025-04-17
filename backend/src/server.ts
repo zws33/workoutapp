@@ -24,7 +24,7 @@ const sheetsService = new GoogleSheetsService(sheetId);
 app.get('/api/sheets', async (req, res) => {
   try {
     const sheetNames = await sheetsService.getSheetNames();
-    res.json({ sheetNames });
+    res.json(sheetNames);
   } catch (error) {
     console.error('Error getting sheet names:', error);
     res.status(500).json({ error: 'Failed to fetch sheet names' });
