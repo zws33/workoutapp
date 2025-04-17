@@ -10,13 +10,14 @@ import GoogleSignIn
 
 protocol WorkoutRepository {
     func fetchWorkouts(for week: String) async throws -> [String: [Exercise]]
+    func fetchWeeks() async throws -> [String]
 }
 
 class WorkoutRepositoryImpl: WorkoutRepository {
     private let session: URLSession
     private let isProd: Bool
     
-    init(session: URLSession = .shared, isProd: Bool = true) {
+    init(session: URLSession = .shared, isProd: Bool = false) {
         self.session = session
         self.isProd = isProd
     }
@@ -51,9 +52,41 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             throw NetworkError.decodingFailed(error)
         }
     }
+    
+    func fetchWeeks() async throws -> [String] {
+        let url = URL(string: "\(baseURL)/api/sheets")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            print("Network request failed:", error)
+            throw NetworkError.transportError(error)
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw NetworkError.invalidResponse
+        }
+
+        do {
+            let weeks = try JSONDecoder().decode([String].self, from: data)
+            print("Decoded week strings:", weeks)
+            return weeks
+        } catch {
+            throw NetworkError.decodingFailed(error)
+        }
+    }
 }
 
 struct FakeWorkoutRepository: WorkoutRepository {
+    
+    func fetchWeeks() async throws -> [String] {
+        return ["Week 1"]
+    }
+    
     func fetchWorkouts(for week: String) async throws -> [String: [Exercise]] {
         [
             "Day 1": [

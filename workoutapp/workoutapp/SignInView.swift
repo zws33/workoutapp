@@ -10,7 +10,7 @@ import SwiftUI
 import GoogleSignIn
 
 struct SignInView: View {
-    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var authViewModel: AuthManager
     @State private var isSigningIn = false
     @State private var signInError: String? = nil
     

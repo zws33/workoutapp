@@ -1,3 +1,11 @@
+//
+//  AuthManager.swift
+//  workoutapp
+//
+//  Created by Zach Smith on 4/16/25.
+//
+
+
 import SwiftUI
 import GoogleSignIn
 
@@ -36,4 +44,9 @@ class AuthManager: ObservableObject {
         GIDSignIn.sharedInstance.signOut()
         self.authState = .signedOut
     }
+}
+
+enum AuthState {
+    case signedOut
+    case signedIn
 }
