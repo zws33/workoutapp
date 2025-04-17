@@ -30,7 +30,7 @@ struct ContentView: View {
         case .signedIn:
             NavigationStack {
                 ZStack {
-                    WorkoutView(viewModel: WorkoutViewModel(repository: workoutRepository))
+                    WorkoutView(workoutRepository: workoutRepository)
                 }
                 .navigationTitle("My Workouts")
                 .toolbar {

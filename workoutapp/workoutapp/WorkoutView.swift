@@ -8,61 +8,73 @@
 import SwiftUI
 
 struct WorkoutView: View {
-    @ObservedObject var viewModel: WorkoutViewModel
+    @StateObject private var viewModel: WorkoutViewModel
     @State private var selectedDay: String?
-
+    
+    init(workoutRepository: WorkoutRepository) {
+        _viewModel = StateObject(wrappedValue: WorkoutViewModel(repository: workoutRepository))
+    }
+    
     var body: some View {
         VStack {
-            if viewModel.isLoading {
+            switch viewModel.state {
+            case .Loading:
+                
                 ProgressView("Loading workouts...")
                     .padding()
-            } else if let errorMessage = viewModel.errorMessage {
-                errorView(errorMessage)
-            } else if viewModel.workouts.isEmpty {
-                loadButton("Load Workout Data")
-            } else {
-                dayPicker
-                exerciseList
+            case .Error(let string):
+                errorView(string)
+            case .Data(let dictionary):
+                if dictionary.isEmpty {
+                    loadButton("Load Workout Data")
+                } else {
+                    VStack {
+                        dayPicker(days: dictionary.keys.sorted())
+                        if let selected = selectedDay,
+                           let exercises = dictionary[selected] {
+                            exerciseList(exercises: exercises)
+                        } else {
+                            Text("Select a workout day")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
             }
-
             Spacer()
         }
         .task {
             await viewModel.getData()
         }
-        .onChange(of: viewModel.workouts) {
-            if selectedDay == nil, !viewModel.workouts.isEmpty {
-                selectedDay = viewModel.workouts.keys.sorted().first
+        .onChange(of: viewModel.state) {
+            print("onChange: \(viewModel.state)")
+            if case let .Data(dictionary) = viewModel.state,
+               selectedDay == nil {
+                selectedDay = dictionary.keys.sorted().first
             }
         }
         .padding()
     }
-
+    
     // Day picker
-    private var dayPicker: some View {
+    private func dayPicker(days: [String]) -> some View {
         Picker("Select Workout Day", selection: $selectedDay) {
             Text("Select a workout day").tag(nil as String?)
-            ForEach(viewModel.workouts.keys.sorted(), id: \.self) { day in
+            ForEach(days, id: \.self) { day in
                 Text(day).tag(day as String?)
             }
         }
         .pickerStyle(MenuPickerStyle())
     }
-
+    
     // Exercises List
-    private var exerciseList: some View {
+    private func exerciseList(exercises: [Exercise]) -> some View {
         List {
-            if let day = selectedDay, let exercises = viewModel.workouts[day] {
-                ForEach(exercises){ exercise in
-                    ExerciseRow(exercise: exercise)
-                }
-            } else {
-                Text("Select a workout day")
-                    .foregroundColor(.secondary)
+            ForEach(exercises){ exercise in
+                ExerciseRow(exercise: exercise)
             }
         }
     }
-
+    
     // Error view helper
     private func errorView(_ message: String) -> some View {
         VStack(spacing: 16) {
@@ -74,11 +86,13 @@ struct WorkoutView: View {
             loadButton("Try Again")
         }
     }
-
+    
     // Load button helper
     private func loadButton(_ label: String) -> some View {
         Button(label) {
-            Task { await viewModel.getData() }
+            Task {
+                await viewModel.getData()
+            }
         }
         .padding()
         .background(Color.blue)
@@ -90,21 +104,7 @@ struct WorkoutView: View {
 @MainActor
 struct WorkoutSelectorView_Previews: PreviewProvider {
     static var previews: some View {
-        WorkoutView(viewModel: mockViewModel)
-    }
-
-    static var mockViewModel: WorkoutViewModel {
-        let vm = WorkoutViewModel(repository: FakeWorkoutRepository())
-        vm.workouts = [
-            "Day 1": [
-                Exercise(day: "Day 1", group: "Push", name: "Bench Press", sets: "3", reps: "10", weight: "135", notes: "Focus on control"),
-                Exercise(day: "Day 1", group: "Push", name: "Overhead Press", sets: "3", reps: "8", weight: "95", notes: "")
-            ],
-            "Day 2": [
-                Exercise(day: "Day 2", group: "Pull", name: "Deadlift", sets: "5", reps: "5", weight: "225", notes: "Keep back tight")
-            ]
-        ]
-        return vm
+        WorkoutView(workoutRepository: FakeWorkoutRepository())
     }
 }
 
@@ -156,7 +156,7 @@ struct ExerciseSection: View {
 struct ExerciseListView: View {
     // Input property - exercises to display
     let exercises: [Exercise]
-
+    
     var body: some View {
         let grouped = Dictionary(grouping: exercises, by: {$0.group})
         let keys = grouped.keys.sorted()

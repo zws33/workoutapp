@@ -10,10 +10,9 @@ import SwiftUI
 import GoogleSignIn
 import GoogleAPIClientForREST_Sheets
 
+@MainActor
 class WorkoutViewModel: ObservableObject {
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var workouts: [String: [Exercise]] = [:]
+    @Published var state: WorkoutViewState = .Loading
     
     private let repository: WorkoutRepository
 
@@ -21,17 +20,20 @@ class WorkoutViewModel: ObservableObject {
         self.repository = repository
     }
     
-    @MainActor
     func getData() async {
-        isLoading = true
-        errorMessage = nil
-        Task {
-            do {
-                workouts = try await repository.fetchWorkouts(for: "Week 1")
-            } catch {
-                errorMessage = error.localizedDescription
-            }
+        state = .Loading
+        print("current state: \(state)")
+        do {
+            let workouts = try await repository.fetchWorkouts(for: "Week 1")
+            state = .Data(workouts)
+        } catch {
+            state = .Error(error.localizedDescription)
         }
-        isLoading = false
     }
+}
+
+enum WorkoutViewState: Equatable {
+    case Loading
+    case Error(String)
+    case Data([String: [Exercise]])
 }
