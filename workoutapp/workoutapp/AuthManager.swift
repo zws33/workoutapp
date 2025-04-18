@@ -9,8 +9,21 @@
 import SwiftUI
 import GoogleSignIn
 
-class AuthManager: ObservableObject {
+protocol AuthManager {
+    var authState: AuthState { get }
+    var token: String? { get }
+    func signIn(completion: @escaping (Bool) -> Void)
+    func signOut()
+}
+
+class AuthManagerImpl: ObservableObject, AuthManager {
+    static let shared = AuthManagerImpl()
+    
     @Published var authState = AuthState.signedOut
+    
+    var token: String? {
+        GIDSignIn.sharedInstance.currentUser?.idToken?.tokenString
+    }
     
     init() {
         // Restore previous sign-in if it exists

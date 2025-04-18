@@ -18,12 +18,12 @@ struct WorkoutView: View {
     var body: some View {
         VStack {
             switch viewModel.state {
-            case .Loading:
+            case .loading:
                 ProgressView("Loading workouts...")
                     .padding()
-            case .Error(let string):
+            case .error(let string):
                 errorView(string)
-            case .Data(let dictionary):
+            case .data(let dictionary):
                 if dictionary.isEmpty {
                     loadButton("Load Workout Data")
                 } else {
@@ -45,7 +45,7 @@ struct WorkoutView: View {
             await viewModel.getWorkouts()
         }
         .onChange(of: viewModel.state) {
-            if case let .Data(dictionary) = viewModel.state,
+            if case let .data(dictionary) = viewModel.state,
                selectedDay == nil {
                 selectedDay = dictionary.keys.sorted().first
             }

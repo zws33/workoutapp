@@ -16,10 +16,12 @@ protocol WorkoutRepository {
 class WorkoutRepositoryImpl: WorkoutRepository {
     private let session: URLSession
     private let isProd: Bool
+    private let authManager: AuthManager
     
-    init(session: URLSession = .shared, isProd: Bool = true) {
+    init(session: URLSession = .shared, isProd: Bool = true, authManager: AuthManager) {
         self.session = session
         self.isProd = isProd
+        self.authManager = authManager
     }
     
     private var baseURL: String {
@@ -34,10 +36,10 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         var request = URLRequest(url: workoutsURL(for: week))
         request.httpMethod = "GET"
         
-        guard let idToken = GIDSignIn.sharedInstance.currentUser?.idToken else {
+        guard let idToken = authManager.token else {
             throw AuthError.missingToken
         }
-        request.addValue("Bearer \(idToken.tokenString)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
         
         let (data, response) = try await session.data(for: request)
         
@@ -57,7 +59,11 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         let url = URL(string: "\(baseURL)/api/sheets")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-
+        guard let idToken = authManager.token else {
+            throw AuthError.missingToken
+        }
+        request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+        
         let (data, response): (Data, URLResponse)
         do {
             (data, response) = try await session.data(for: request)

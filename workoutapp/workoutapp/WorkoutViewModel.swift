@@ -12,7 +12,7 @@ import GoogleAPIClientForREST_Sheets
 
 @MainActor
 class WorkoutViewModel: ObservableObject {
-    @Published var state: WorkoutViewState = .Loading
+    @Published var state: WorkoutViewState = .loading
     
     private let repository: WorkoutRepository
     private let selectedWeek: String
@@ -23,18 +23,18 @@ class WorkoutViewModel: ObservableObject {
     }
     
     func getWorkouts() async {
-        state = .Loading
+        state = .loading
         do {
             let workouts = try await repository.fetchWorkouts(for: selectedWeek)
-            state = .Data(workouts)
+            state = .data(workouts)
         } catch {
-            state = .Error(error.localizedDescription)
+            state = .error(error.localizedDescription)
         }
     }
 }
 
 enum WorkoutViewState: Equatable {
-    case Loading
-    case Error(String)
-    case Data([String: [Exercise]])
+    case loading
+    case error(String)
+    case data([String: [Exercise]])
 }

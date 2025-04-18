@@ -5,13 +5,18 @@ import GoogleSignIn
 
 @main
 struct WorkoutTrackerApp: App {
-    @StateObject var authViewModel = AuthManager()
-    let workoutRepository = WorkoutRepositoryImpl()
+    @StateObject var authManager = AuthManagerImpl.shared
+    
+    let repository: WorkoutRepository
+    
+    init() {
+        self.repository = WorkoutRepositoryImpl(authManager: AuthManagerImpl.shared)
+    }
     
     var body: some Scene {
         WindowGroup {
-            ContentView(workoutRepository: workoutRepository)
-                .environmentObject(authViewModel)
+            ContentView(repository: repository)
+                .environmentObject(authManager)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -20,8 +25,8 @@ struct WorkoutTrackerApp: App {
 }
 
 struct ContentView: View {
-    @EnvironmentObject var authManager: AuthManager
-    let workoutRepository: WorkoutRepository
+    @EnvironmentObject var authManager: AuthManagerImpl
+    let repository: WorkoutRepository
     
     var body: some View {
         switch authManager.authState {
@@ -30,7 +35,7 @@ struct ContentView: View {
         case .signedIn:
             NavigationStack {
                 ZStack {
-                    WeekSelectorView(repository: workoutRepository)
+                    WeekSelectorView(repository: repository)
                 }
                 .navigationTitle("My Workouts")
                 .toolbar {

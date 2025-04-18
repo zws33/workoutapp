@@ -16,9 +16,7 @@ struct Exercise: Codable, Identifiable, Equatable {
     let weight: String
     let notes: String
     
-    // Add an id for List to use
     var id: String {
-        // Create a unique identifier by combining fields
         return "\(day)-\(group)-\(name)"
     }
     
