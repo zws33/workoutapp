@@ -11,6 +11,7 @@ import GoogleSignIn
 
 @MainActor
 final class WeekSelectorViewModel: ObservableObject {
+    @Published var state: WeekSelectorState = .loading
     @Published var weeks: [String] = []
     @Published var selectedWeek: String?
     @Published var isLoading: Bool = false
@@ -23,25 +24,26 @@ final class WeekSelectorViewModel: ObservableObject {
     }
 
     func loadWeeks() async {
-        isLoading = true
-        error = nil
+        state = .loading
         do {
-            let fetchedWeeks = try await repository.fetchWeeks()
-            weeks = fetchedWeeks
-            selectedWeek = fetchedWeeks.first
+            let weeks = try await repository.fetchWeeks()
+            state = .data(weeks: weeks)
         } catch {
-            self.error = error
+            state = .error(error.localizedDescription)
         }
-        isLoading = false
     }
 
-    func retry() {
-        Task {
-            await loadWeeks()
-        }
+    func retry() async {
+        await loadWeeks()
     }
 
     func select(week: String) {
         selectedWeek = week
     }
+}
+
+enum WeekSelectorState: Equatable {
+    case loading
+    case error(String)
+    case data(weeks: [String])
 }

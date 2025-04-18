@@ -15,16 +15,17 @@ class WorkoutViewModel: ObservableObject {
     @Published var state: WorkoutViewState = .Loading
     
     private let repository: WorkoutRepository
+    private let selectedWeek: String
 
-    init(repository: WorkoutRepository) {
+    init(repository: WorkoutRepository, selectedWeek: String) {
         self.repository = repository
+        self.selectedWeek = selectedWeek
     }
     
-    func getData() async {
+    func getWorkouts() async {
         state = .Loading
-        print("current state: \(state)")
         do {
-            let workouts = try await repository.fetchWorkouts(for: "Week 1")
+            let workouts = try await repository.fetchWorkouts(for: selectedWeek)
             state = .Data(workouts)
         } catch {
             state = .Error(error.localizedDescription)

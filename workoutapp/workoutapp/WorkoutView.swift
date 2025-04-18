@@ -11,15 +11,14 @@ struct WorkoutView: View {
     @StateObject private var viewModel: WorkoutViewModel
     @State private var selectedDay: String?
     
-    init(workoutRepository: WorkoutRepository) {
-        _viewModel = StateObject(wrappedValue: WorkoutViewModel(repository: workoutRepository))
+    init(workoutRepository: WorkoutRepository, selectedWeek: String) {
+        _viewModel = StateObject(wrappedValue: WorkoutViewModel(repository: workoutRepository, selectedWeek: selectedWeek))
     }
     
     var body: some View {
         VStack {
             switch viewModel.state {
             case .Loading:
-                
                 ProgressView("Loading workouts...")
                     .padding()
             case .Error(let string):
@@ -43,10 +42,9 @@ struct WorkoutView: View {
             Spacer()
         }
         .task {
-            await viewModel.getData()
+            await viewModel.getWorkouts()
         }
         .onChange(of: viewModel.state) {
-            print("onChange: \(viewModel.state)")
             if case let .Data(dictionary) = viewModel.state,
                selectedDay == nil {
                 selectedDay = dictionary.keys.sorted().first
@@ -91,7 +89,7 @@ struct WorkoutView: View {
     private func loadButton(_ label: String) -> some View {
         Button(label) {
             Task {
-                await viewModel.getData()
+                await viewModel.getWorkouts()
             }
         }
         .padding()
@@ -104,7 +102,7 @@ struct WorkoutView: View {
 @MainActor
 struct WorkoutSelectorView_Previews: PreviewProvider {
     static var previews: some View {
-        WorkoutView(workoutRepository: FakeWorkoutRepository())
+        WorkoutView(workoutRepository: FakeWorkoutRepository(), selectedWeek: "Week 1")
     }
 }
 

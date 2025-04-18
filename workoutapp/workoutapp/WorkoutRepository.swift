@@ -73,7 +73,6 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 
         do {
             let weeks = try JSONDecoder().decode([String].self, from: data)
-            print("Decoded week strings:", weeks)
             return weeks
         } catch {
             throw NetworkError.decodingFailed(error)

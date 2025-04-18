@@ -20,23 +20,23 @@ struct WorkoutTrackerApp: App {
 }
 
 struct ContentView: View {
-    @EnvironmentObject var authViewModel: AuthManager
+    @EnvironmentObject var authManager: AuthManager
     let workoutRepository: WorkoutRepository
     
     var body: some View {
-        switch authViewModel.authState {
+        switch authManager.authState {
         case .signedOut:
             SignInView()
         case .signedIn:
             NavigationStack {
                 ZStack {
-                    WorkoutView(workoutRepository: workoutRepository)
+                    WeekSelectorView(repository: workoutRepository)
                 }
                 .navigationTitle("My Workouts")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Sign Out") {
-                            authViewModel.signOut()
+                            authManager.signOut()
                         }
                     }
                 }
