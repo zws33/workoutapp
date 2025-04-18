@@ -21,7 +21,7 @@ if (!sheetId) {
 
 const sheetsService = new GoogleSheetsService(sheetId);
 
-app.get('/api/sheets', async (req, res) => {
+app.get('/api/sheets', verifyGoogleToken, async (req, res) => {
   try {
     const sheetNames = await sheetsService.getSheetNames();
     res.json(sheetNames);
