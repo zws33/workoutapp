@@ -17,7 +17,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     private let session: URLSession
     private let isProd: Bool
     
-    init(session: URLSession = .shared, isProd: Bool = false) {
+    init(session: URLSession = .shared, isProd: Bool = true) {
         self.session = session
         self.isProd = isProd
     }
@@ -88,11 +88,12 @@ struct FakeWorkoutRepository: WorkoutRepository {
     
     func fetchWorkouts(for week: String) async throws -> [String: [Exercise]] {
         [
-            "Day 1": [
-                Exercise(day: "Day 1", group: "Push", name: "Bench Press", sets: "3", reps: "10", weight: "135", notes: "Control focus")
+            "1": [
+                Exercise(day: "1", group: "Primary", name: "Bench Press", sets: "3", reps: "10", weight: "135", notes: "Control focus"),
+                Exercise(day: "1", group: "Secondary", name: "Lunges", sets: "3",reps: "10", weight: "30lbs", notes: "")
             ],
-            "Day 2": [
-                Exercise(day: "Day 2", group: "Pull", name: "Deadlift", sets: "5", reps: "5", weight: "225", notes: "Flat back")
+            "2": [
+                Exercise(day: "Day 2", group: "Secondary", name: "Deadlift", sets: "5", reps: "5", weight: "225", notes: "Flat back")
             ]
         ]
     }

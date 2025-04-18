@@ -28,10 +28,10 @@ struct WorkoutView: View {
                     loadButton("Load Workout Data")
                 } else {
                     VStack {
-                        dayPicker(days: dictionary.keys.sorted())
+                        dayPicker(days:  dictionary.keys.sorted())
                         if let selected = selectedDay,
                            let exercises = dictionary[selected] {
-                            exerciseList(exercises: exercises)
+                            ExerciseListView(exercises: exercises)
                         } else {
                             Text("Select a workout day")
                                 .foregroundColor(.secondary)
@@ -53,7 +53,6 @@ struct WorkoutView: View {
         .padding()
     }
     
-    // Day picker
     private func dayPicker(days: [String]) -> some View {
         Picker("Select Workout Day", selection: $selectedDay) {
             Text("Select a workout day").tag(nil as String?)
@@ -64,16 +63,6 @@ struct WorkoutView: View {
         .pickerStyle(MenuPickerStyle())
     }
     
-    // Exercises List
-    private func exerciseList(exercises: [Exercise]) -> some View {
-        List {
-            ForEach(exercises){ exercise in
-                ExerciseRow(exercise: exercise)
-            }
-        }
-    }
-    
-    // Error view helper
     private func errorView(_ message: String) -> some View {
         VStack(spacing: 16) {
             Text("Error")
@@ -85,7 +74,6 @@ struct WorkoutView: View {
         }
     }
     
-    // Load button helper
     private func loadButton(_ label: String) -> some View {
         Button(label) {
             Task {
@@ -100,13 +88,43 @@ struct WorkoutView: View {
 }
 
 @MainActor
-struct WorkoutSelectorView_Previews: PreviewProvider {
+struct WorkoutView_Previews: PreviewProvider {
     static var previews: some View {
         WorkoutView(workoutRepository: FakeWorkoutRepository(), selectedWeek: "Week 1")
     }
 }
 
-// Simple row component for each exercise
+struct ExerciseListView: View {
+    // Input property - exercises to display
+    let exercises: [Exercise]
+    let Keys = ["Primary", "Secondary", "Cardio", "Core"]
+    
+    var body: some View {
+        let grouped = Dictionary(grouping: exercises, by: {$0.group})
+        List {
+            ForEach(Keys, id: \.self) { key in
+                if let exercises = grouped[key] {
+                    ExerciseSection(title: key, exercises: exercises)
+                }
+            }
+        }
+        .listStyle(InsetGroupedListStyle())
+    }
+}
+
+struct ExerciseSection: View {
+    let title: String
+    let exercises: [Exercise]
+    
+    var body: some View {
+        Section(header: Text(title).font(.title3).bold()) {
+            ForEach(exercises) { exercise in
+                ExerciseRow(exercise: exercise)
+            }
+        }
+    }
+}
+
 struct ExerciseRow: View {
     let exercise: Exercise
     
@@ -136,52 +154,20 @@ struct ExerciseRow: View {
     }
 }
 
-// Exercise list section
-struct ExerciseSection: View {
-    let title: String
-    let exercises: [Exercise]
-    
-    var body: some View {
-        Section(header: Text(title).font(.title3).bold()) {
-            ForEach(exercises) { exercise in
-                ExerciseRow(exercise: exercise)
-            }
-        }
-    }
-}
-
-// Main exercise list view
-struct ExerciseListView: View {
-    // Input property - exercises to display
-    let exercises: [Exercise]
-    
-    var body: some View {
-        let grouped = Dictionary(grouping: exercises, by: {$0.group})
-        let keys = grouped.keys.sorted()
-        List {
-            // Creates each section
-            ForEach(keys, id: \.self) { group in
-                Section(header: Text(group)) {
-                    // Creates each row within a section
-                    ForEach(grouped[group]!) { exercise in
-                        ExerciseRow(exercise: exercise)
-                    }
-                }
-            }
-        }
-        .listStyle(InsetGroupedListStyle())
-    }
-}
-
 // Preview provider
 struct ExerciseListView_Previews: PreviewProvider {
     
     static var previews: some View {
-        ExerciseListView(exercises: [exercise])
+        let exercises = [
+            Exercise(
+                day: "1", group: "Primary", name: "Push ups", sets: "3",reps: "10", weight: "30lbs", notes: "elbows in"
+            ), Exercise(
+                day: "1", group: "Secondary", name: "Lunges", sets: "3",reps: "10", weight: "30lbs", notes: ""
+            ),
+            Exercise(
+                day: "1", group: "Cardio", name: "400m Run", sets: "3",reps: "10", weight: "30lbs", notes: ""
+            )
+        ]
+        ExerciseListView(exercises: exercises)
     }
 }
-
-
-let exercise = Exercise(
-    day: "1", group: "primary", name: "Push ups", sets: "3",reps: "10", weight: "30lbs", notes: "elbows in"
-)
