@@ -127,30 +127,48 @@ struct ExerciseSection: View {
 
 struct ExerciseRow: View {
     let exercise: Exercise
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+    @State private var isExpanded = false
+
+    fileprivate func exerciseLabel() -> VStack<TupleView<(Text, some View)>> {
+        return VStack(alignment: .leading, spacing: 2) {
             Text(exercise.name)
                 .font(.headline)
             
             HStack {
                 Text("Sets: \(exercise.sets)")
-                Text("Reps: \(exercise.reps)")
+                let reps = exercise.reps.isEmpty ? "-" : exercise.reps
+                Text("Reps: \(reps)")
                 if !exercise.weight.isEmpty {
                     Text("Weight: \(exercise.weight)")
                 }
             }
             .font(.subheadline)
             .foregroundColor(.secondary)
-            
-            if !exercise.notes.isEmpty {
-                Text(exercise.notes)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.top, 2)
-            }
+            .padding(.vertical, 4)
         }
-        .padding(.vertical, 4)
+    }
+    
+    var body: some View {
+        if !exercise.notes.isEmpty {
+            DisclosureGroup(
+                isExpanded: $isExpanded,
+                content: {
+                    Text(exercise.notes)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 2)
+                        .transition(.opacity)
+                    
+                },
+                label: {
+                    exerciseLabel()
+                }
+            )
+            .animation(.easeInOut(duration: 0.25), value: isExpanded)
+        } else {
+            exerciseLabel()
+                
+        }
     }
 }
 
