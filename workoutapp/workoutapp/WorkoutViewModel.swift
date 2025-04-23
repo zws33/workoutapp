@@ -35,5 +35,15 @@ class WorkoutViewModel: ObservableObject {
 enum WorkoutViewState: Equatable {
     case loading
     case error(String)
-    case data([String: [Exercise]])
+    case data([WorkoutDay: [Exercise]])
+}
+
+enum WorkoutDay: String, CaseIterable, Hashable, Comparable {
+    case dayOne = "Day 1"
+    case dayTwo = "Day 2"
+    case dayThree = "Day 3"
+
+    static func < (lhs: WorkoutDay, rhs: WorkoutDay) -> Bool {
+        allCases.firstIndex(of: lhs)! < allCases.firstIndex(of: rhs)!
+    }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct WorkoutView: View {
     @StateObject private var viewModel: WorkoutViewModel
-    @State private var selectedDay: String?
+    @State private var selectedDay: WorkoutDay?
     
     init(workoutRepository: WorkoutRepository, selectedWeek: String) {
         _viewModel = StateObject(wrappedValue: WorkoutViewModel(repository: workoutRepository, selectedWeek: selectedWeek))
@@ -28,7 +28,7 @@ struct WorkoutView: View {
                     loadButton("Load Workout Data")
                 } else {
                     VStack {
-                        dayPicker(days:  dictionary.keys.sorted())
+                        dayPicker(days:  WorkoutDay.allCases)
                         if let selected = selectedDay,
                            let exercises = dictionary[selected] {
                             ExerciseListView(exercises: exercises)
@@ -53,11 +53,11 @@ struct WorkoutView: View {
         .padding()
     }
     
-    private func dayPicker(days: [String]) -> some View {
+    private func dayPicker(days: [WorkoutDay]) -> some View {
         Picker("Select Workout Day", selection: $selectedDay) {
             Text("Select a workout day").tag(nil as String?)
             ForEach(days, id: \.self) { day in
-                Text(day).tag(day as String?)
+                Text(day.rawValue).tag(day)
             }
         }
         .pickerStyle(MenuPickerStyle())
@@ -154,7 +154,7 @@ struct ExerciseRow: View {
                 isExpanded: $isExpanded,
                 content: {
                     Text(exercise.notes)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                         .padding(.top, 2)
                         .transition(.opacity)

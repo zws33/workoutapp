@@ -9,7 +9,7 @@ import Foundation
 import GoogleSignIn
 
 protocol WorkoutRepository {
-    func fetchWorkouts(for week: String) async throws -> [String: [Exercise]]
+    func fetchWorkouts(for week: String) async throws -> [WorkoutDay: [Exercise]]
     func fetchWeeks() async throws -> [String]
 }
 
@@ -32,7 +32,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         URL(string: "\(baseURL)/api/sheets/\(week)")!
     }
     
-    func fetchWorkouts(for week: String) async throws -> [String: [Exercise]] {
+    func fetchWorkouts(for week: String) async throws -> [WorkoutDay: [Exercise]] {
         var request = URLRequest(url: workoutsURL(for: week))
         request.httpMethod = "GET"
         
@@ -49,7 +49,20 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
         
         do {
-            return try JSONDecoder().decode([String: [Exercise]].self, from: data)
+            let decoded: [String : [Exercise]] = try JSONDecoder().decode([String: [Exercise]].self, from: data)
+
+            let mapped = Dictionary(uniqueKeysWithValues: decoded.compactMap { (key, exercises) in
+                let day: WorkoutDay?
+                switch key {
+                case "1": day = .dayOne
+                case "2": day = .dayTwo
+                case "3": day = .dayThree
+                default: day = nil
+                }
+                return day.map { ($0, exercises) }
+            })
+
+            return mapped
         } catch {
             throw NetworkError.decodingFailed(error)
         }
@@ -92,13 +105,13 @@ struct FakeWorkoutRepository: WorkoutRepository {
         return ["Week 1"]
     }
     
-    func fetchWorkouts(for week: String) async throws -> [String: [Exercise]] {
+    func fetchWorkouts(for week: String) async throws -> [WorkoutDay: [Exercise]] {
         [
-            "1": [
+            .dayOne : [
                 Exercise(day: "1", group: "Primary", name: "Bench Press", sets: "3", reps: "10", weight: "135", notes: "Control focus"),
                 Exercise(day: "1", group: "Secondary", name: "Lunges", sets: "3",reps: "10", weight: "30lbs", notes: "")
             ],
-            "2": [
+            .dayTwo : [
                 Exercise(day: "Day 2", group: "Secondary", name: "Deadlift", sets: "5", reps: "5", weight: "225", notes: "Flat back")
             ]
         ]
