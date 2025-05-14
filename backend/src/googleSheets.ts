@@ -1,10 +1,6 @@
 import { google, sheets_v4 } from 'googleapis';
 import * as path from 'path';
 
-export interface SheetRow {
-  [key: string]: string;
-}
-
 export class GoogleSheetsService {
   private sheets: sheets_v4.Sheets;
   private spreadsheetId: string;
@@ -27,7 +23,6 @@ export class GoogleSheetsService {
   async getSheetData(sheetName: string, range?: string) {
     try {
       const fullRange = range ? `${sheetName}!${range}` : sheetName;
-
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range: fullRange,
@@ -36,29 +31,10 @@ export class GoogleSheetsService {
       const rows = response.data.values;
 
       if (!rows || rows.length === 0) {
-        return [];
+        throw new Error('No data found in the sheet');
       }
 
-      // Assuming the first row contains headers
-      const headers = rows[0];
-      const data = rows.slice(1).map((row) => {
-        const rowData: SheetRow = {};
-        headers.forEach((header, index) => {
-          rowData[header.toString()] = row[index] || '';
-        });
-        return rowData;
-      });
-
-      const grouped = data.reduce((acc: { [key: string]: SheetRow[] }, row) => {
-        const key = row[headers[0]]; // Assuming the first column is the key
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(row);
-        return acc;
-      }, {});
-
-      return grouped;
+      return rows;
     } catch (error) {
       console.error('Error fetching Google Sheet data:', error);
       throw error;
@@ -69,12 +45,11 @@ export class GoogleSheetsService {
    * Get sheet names from the spreadsheet
    * @returns Array of sheet names
    */
-  async getSheetNames(): Promise<string[]> {
+  async getSheetNames() {
     try {
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
-
       return response.data.sheets!.map((sheet) => sheet.properties!.title!);
     } catch (error) {
       console.error('Error getting sheet names:', error);

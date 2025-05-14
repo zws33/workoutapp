@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { GoogleSheetsService } from './googleSheets';
 import { verifyGoogleToken } from './authenticate';
+import { firestore } from './firstoreDb';
+import { WorkoutRepository } from './WorkoutRepository';
 
 dotenv.config();
 
@@ -20,6 +22,7 @@ if (!sheetId) {
 }
 
 const sheetsService = new GoogleSheetsService(sheetId);
+const db = firestore();
 
 app.get('/api/sheets', verifyGoogleToken, async (req, res) => {
   try {
@@ -33,15 +36,27 @@ app.get('/api/sheets', verifyGoogleToken, async (req, res) => {
 
 app.get('/api/sheets/:sheetName', verifyGoogleToken, async (req, res) => {
   const { sheetName } = req.params;
-  const range = req.query.range as string;
   try {
-    const data = await sheetsService.getSheetData(sheetName, range);
+    const data = await sheetsService.getSheetData(sheetName);
     res.json(data);
   } catch (error) {
     console.error(`Error getting data from sheet ${sheetName}:`, error);
     res
       .status(500)
       .json({ error: `Failed to fetch data from sheet ${sheetName}` });
+  }
+});
+
+app.get('/api/workouts/:week', verifyGoogleToken, async (req, res) => {
+  const { week } = req.params;
+  const repository = new WorkoutRepository(sheetsService);
+  try {
+    const data = await repository.getWorkoutData(week);
+    await db.collection('workouts').doc(week).set(data);
+    res.json(data);
+  } catch (error) {
+    console.error(`Error getting data for ${week}:`, error);
+    res.status(500).json({ error: `Failed to fetch data for ${week}` });
   }
 });
 
