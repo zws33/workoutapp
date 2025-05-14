@@ -1,9 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { GoogleSheetsService } from './googleSheets';
+import { GoogleSheetsService } from './googleSheetsService';
 import { verifyGoogleToken } from './authenticate';
 import { firestore } from './firstoreDb';
-import { WorkoutRepository } from './WorkoutRepository';
+import { WorkoutRepository } from './workoutRepository';
 
 dotenv.config();
 

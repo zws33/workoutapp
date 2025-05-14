@@ -1,11 +1,11 @@
-import { GoogleSheetsService } from './googleSheets';
+import { GoogleSheetsService } from './googleSheetsService';
 import {
   addExercise,
   createWorkout,
   Group,
   GroupList,
   Workout,
-} from './WorkoutModels';
+} from './models';
 
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;

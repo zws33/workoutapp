@@ -1,7 +1,6 @@
-import { assert } from 'console';
 import fs from 'fs';
 import { parse } from 'csv-parse/sync';
-import { createWorkoutGroup } from './WorkoutRepository';
+import { createWorkoutGroup } from './workoutRepository';
 
 const sampleWorkoutData = fs.readFileSync('./src/sampleWorkoutData.csv');
 const testdata = parse(sampleWorkoutData, {
