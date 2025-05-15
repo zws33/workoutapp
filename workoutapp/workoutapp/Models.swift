@@ -7,26 +7,20 @@
 
 import Foundation
 
-struct Exercise: Codable, Identifiable, Equatable {
-    let day: String
-    let group: String
+struct WorkoutGroup: Codable, Equatable {
     let name: String
-    let sets: String
-    let reps: String
-    let weight: String
+    let workouts: [String: WorkoutDay]
+}
+
+struct WorkoutDay: Codable, Equatable {
+    let day: String
+    let exercises: [String: [Exercise]]
+}
+
+struct Exercise: Codable, Equatable {
+    let name: String
+    let sets: Int
+    let reps: Int
+    let weight: Int
     let notes: String
-    
-    var id: String {
-        return "\(day)-\(group)-\(name)"
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case day = "Day"
-        case group = "Group"
-        case name = "Name"
-        case sets = "Sets"
-        case reps = "Reps"
-        case weight = "Weight"
-        case notes = "Notes"
-    }
 }

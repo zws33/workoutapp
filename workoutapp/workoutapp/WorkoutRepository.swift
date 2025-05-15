@@ -9,7 +9,7 @@ import Foundation
 import GoogleSignIn
 
 protocol WorkoutRepository {
-    func fetchWorkouts(for week: String) async throws -> [WorkoutDay: [Exercise]]
+    func fetchWorkouts(for week: String) async throws -> WorkoutGroup
     func fetchWeeks() async throws -> [String]
 }
 
@@ -29,12 +29,13 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
     
     private func workoutsURL(for week: String) -> URL {
-        URL(string: "\(baseURL)/api/sheets/\(week)")!
+        URL(string: "\(baseURL)/api/workouts/\(week)")!
     }
     
-    func fetchWorkouts(for week: String) async throws -> [WorkoutDay: [Exercise]] {
+    func fetchWorkouts(for week: String) async throws -> WorkoutGroup {
         var request = URLRequest(url: workoutsURL(for: week))
         request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         
         guard let idToken = authManager.token else {
             throw AuthError.missingToken
@@ -42,28 +43,17 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
         
         let (data, response) = try await session.data(for: request)
-        
         guard let httpResponse = response as? HTTPURLResponse,
               (200...299).contains(httpResponse.statusCode) else {
             throw NetworkError.invalidResponse
         }
+        print("ok")
         
         do {
-            let decoded: [String : [Exercise]] = try JSONDecoder().decode([String: [Exercise]].self, from: data)
-
-            let mapped = Dictionary(uniqueKeysWithValues: decoded.compactMap { (key, exercises) in
-                let day: WorkoutDay?
-                switch key {
-                case "1": day = .dayOne
-                case "2": day = .dayTwo
-                case "3": day = .dayThree
-                default: day = nil
-                }
-                return day.map { ($0, exercises) }
-            })
-
-            return mapped
+            let workout = try createWorkoutGroup(from: data)
+            return workout
         } catch {
+            print("error")
             throw NetworkError.decodingFailed(error)
         }
     }
@@ -99,21 +89,28 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
 }
 
+func createWorkoutGroup(from data: Data) throws -> WorkoutGroup {
+    let decoder = JSONDecoder()
+    return try decoder.decode(WorkoutGroup.self, from: data)
+}
+
 struct FakeWorkoutRepository: WorkoutRepository {
     
     func fetchWeeks() async throws -> [String] {
         return ["Week 1"]
     }
     
-    func fetchWorkouts(for week: String) async throws -> [WorkoutDay: [Exercise]] {
-        [
-            .dayOne : [
-                Exercise(day: "1", group: "Primary", name: "Bench Press", sets: "3", reps: "10", weight: "135", notes: "Control focus"),
-                Exercise(day: "1", group: "Secondary", name: "Lunges", sets: "3",reps: "10", weight: "30lbs", notes: "")
-            ],
-            .dayTwo : [
-                Exercise(day: "Day 2", group: "Secondary", name: "Deadlift", sets: "5", reps: "5", weight: "225", notes: "Flat back")
+    func fetchWorkouts(for week: String) async throws -> WorkoutGroup {
+        WorkoutGroup(
+            name: "Week 1",
+            workouts: [
+                "1" : WorkoutDay(
+                    day: "1",
+                    exercises : [
+                        "primary" : [Exercise(name: "pushups", sets: 1, reps: 10, weight: 35, notes: "")]
+                    ]
+                )
             ]
-        ]
+        )
     }
 }

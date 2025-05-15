@@ -47,7 +47,7 @@ app.get('/api/sheets/:sheetName', verifyGoogleToken, async (req, res) => {
   }
 });
 
-app.get('/api/workouts/:week', verifyGoogleToken, async (req, res) => {
+app.get('/api/workouts/:week', async (req, res) => {
   const { week } = req.params;
   const repository = new WorkoutRepository(sheetsService);
   try {

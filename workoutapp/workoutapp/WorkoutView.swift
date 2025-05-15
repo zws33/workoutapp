@@ -9,7 +9,7 @@ import SwiftUI
 
 struct WorkoutView: View {
     @StateObject private var viewModel: WorkoutViewModel
-    @State private var selectedDay: WorkoutDay?
+    @State private var selectedDay: String?
     
     init(workoutRepository: WorkoutRepository, selectedWeek: String) {
         _viewModel = StateObject(wrappedValue: WorkoutViewModel(repository: workoutRepository, selectedWeek: selectedWeek))
@@ -23,21 +23,17 @@ struct WorkoutView: View {
                     .padding()
             case .error(let string):
                 errorView(string)
-            case .data(let dictionary):
-                if dictionary.isEmpty {
-                    loadButton("Load Workout Data")
-                } else {
+            case .data(let workoutGroup):
                     VStack {
-                        dayPicker(days:  WorkoutDay.allCases)
+                        dayPicker(days:  Array(workoutGroup.workouts.keys).sorted())
                         if let selected = selectedDay,
-                           let exercises = dictionary[selected] {
-                            ExerciseListView(exercises: exercises)
+                           let workoutDayResponse = workoutGroup.workouts[selected] {
+                            ExerciseListView(exercises: workoutDayResponse.exercises)
                         } else {
                             Text("Select a workout day")
                                 .foregroundColor(.secondary)
                         }
                     }
-                }
             }
             Spacer()
         }
@@ -45,19 +41,19 @@ struct WorkoutView: View {
             await viewModel.getWorkouts()
         }
         .onChange(of: viewModel.state) {
-            if case let .data(dictionary) = viewModel.state,
+            if case let .data(workoutGroup) = viewModel.state,
                selectedDay == nil {
-                selectedDay = dictionary.keys.sorted().first
+                selectedDay = Array(workoutGroup.workouts.keys).sorted().first
             }
         }
         .padding()
     }
     
-    private func dayPicker(days: [WorkoutDay]) -> some View {
+    private func dayPicker(days: [String]) -> some View {
         Picker("Select Workout Day", selection: $selectedDay) {
             Text("Select a workout day").tag(nil as String?)
             ForEach(days, id: \.self) { day in
-                Text(day.rawValue).tag(day)
+                Text(day).tag(day as String?)
             }
         }
         .pickerStyle(MenuPickerStyle())
@@ -96,15 +92,14 @@ struct WorkoutView_Previews: PreviewProvider {
 
 struct ExerciseListView: View {
     // Input property - exercises to display
-    let exercises: [Exercise]
-    let Keys = ["Primary", "Secondary", "Cardio", "Core"]
+    let exercises: [String: [Exercise]]
+    let sections = ["Primary", "Secondary", "Cardio", "Core"]
     
     var body: some View {
-        let grouped = Dictionary(grouping: exercises, by: {$0.group})
         List {
-            ForEach(Keys, id: \.self) { key in
-                if let exercises = grouped[key] {
-                    ExerciseSection(title: key, exercises: exercises)
+            ForEach(sections, id: \.self) { section in
+                if let exercises = self.exercises[section] {
+                    ExerciseSection(title: section.lowercased(), exercises: exercises)
                 }
             }
         }
@@ -118,7 +113,7 @@ struct ExerciseSection: View {
     
     var body: some View {
         Section(header: Text(title).font(.title3).bold()) {
-            ForEach(exercises) { exercise in
+            ForEach(exercises, id: \.name) { exercise in
                 ExerciseRow(exercise: exercise)
             }
         }
@@ -136,9 +131,9 @@ struct ExerciseRow: View {
             
             HStack {
                 Text("Sets: \(exercise.sets)")
-                let reps = exercise.reps.isEmpty ? "-" : exercise.reps
+                let reps = exercise.reps != 0 ? String(exercise.reps) : "-"
                 Text("Reps: \(reps)")
-                if !exercise.weight.isEmpty {
+                if exercise.weight != 0 {
                     Text("Weight: \(exercise.weight)")
                 }
             }
@@ -178,14 +173,18 @@ struct ExerciseListView_Previews: PreviewProvider {
     static var previews: some View {
         let exercises = [
             Exercise(
-                day: "1", group: "Primary", name: "Push ups", sets: "3",reps: "10", weight: "30lbs", notes: "elbows in"
+                name: "Push ups", sets: 3 ,reps: 10, weight: 30, notes: "elbows in"
             ), Exercise(
-                day: "1", group: "Secondary", name: "Lunges", sets: "3",reps: "10", weight: "30lbs", notes: ""
+                name: "Lunges",
+                sets: 3,
+                reps: 10,
+                weight: 30,
+                notes: ""
             ),
             Exercise(
-                day: "1", group: "Cardio", name: "400m Run", sets: "3",reps: "10", weight: "30lbs", notes: ""
+                name: "400m Run", sets: 3 ,reps: 10, weight: 30, notes: ""
             )
         ]
-        ExerciseListView(exercises: exercises)
+        ExerciseListView(exercises: ["1": exercises])
     }
 }

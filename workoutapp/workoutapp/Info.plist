@@ -5,8 +5,17 @@
 	<key>ServerEnvironments</key>
 	<dict/>
 	<key>dev</key>
-	<string>"http://localhost:3000"</string>
+	<string>&quot;http://localhost:3000&quot;</string>
 	<key>prod</key>
-	<string>"https://zwsmith.me"</string>
+	<string>&quot;https://zwsmith.me&quot;</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.951785297505-leo3cs9atmgrl42or2clttjer184hl4f</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
