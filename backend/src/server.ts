@@ -23,6 +23,8 @@ if (!sheetId) {
 
 const sheetsService = new GoogleSheetsService(sheetId);
 const db = firestore();
+const repository = new WorkoutRepository(sheetsService, db);
+repository.startCronJob();
 
 app.get('/api/sheets', verifyGoogleToken, async (req, res) => {
   try {
@@ -47,12 +49,10 @@ app.get('/api/sheets/:sheetName', verifyGoogleToken, async (req, res) => {
   }
 });
 
-app.get('/api/workouts/:week', async (req, res) => {
+app.get('/api/workouts/:week', verifyGoogleToken, async (req, res) => {
   const { week } = req.params;
-  const repository = new WorkoutRepository(sheetsService);
   try {
     const data = await repository.getWorkoutData(week);
-    await db.collection('workouts').doc(week).set(data);
     res.json(data);
   } catch (error) {
     console.error(`Error getting data for ${week}:`, error);
