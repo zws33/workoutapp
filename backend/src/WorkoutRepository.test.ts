@@ -1,14 +1,10 @@
-import fs from 'fs';
-import { parse } from 'csv-parse/sync';
-import { createWorkoutGroup } from './workoutRepository';
+import { parse } from '@std/csv';
+import { createWorkoutGroup } from './workoutRepository.ts';
 
-const sampleWorkoutData = fs.readFileSync('./src/sampleWorkoutData.csv');
-const testdata = parse(sampleWorkoutData, {
-  columns: false,
-  skip_empty_lines: true,
-});
+const sampleWorkoutData = Deno.readTextFileSync('./src/sampleWorkoutData.csv');
+const testdata = parse(sampleWorkoutData);
 
-test('getWorkoutGroup returns correct result', () => {
+Deno.test('getWorkoutGroup returns correct result', () => {
   const result = createWorkoutGroup('Week 1', testdata);
   console.dir(result, { depth: null });
 });

@@ -1,0 +1,20 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-read --allow-env --env-file=.env src/main.ts",
+    "dev": "deno run --watch --allow-net --allow-read --unstable-cron --allow-env --env-file=.env src/main.ts",
+    "test": "deno test --allow-net --allow-read --allow-env"
+  },
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom"]
+  },
+  "npm": true,
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@std/csv": "jsr:@std/csv@^1.0.6",
+    "@std/path": "jsr:@std/path@^1.0.9",
+    "express": "npm:express@4.18.2",
+    "firebase-admin": "npm:firebase-admin@13.3.0",
+    "googleapis": "npm:googleapis@126.0.1",
+    "google-auth-library": "npm:google-auth-library@9.1.0"
+  }
+}

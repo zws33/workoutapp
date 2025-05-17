@@ -9,25 +9,33 @@ export const verifyToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    // Get the token from the Authorization header
-    const authHeader = req.headers.authorization;
+  const isProd = Deno.env.get('NODE_ENV') === 'production';
+  if (isProd) {
+    try {
+      // Get the token from the Authorization header
+      const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized: No token provided' });
-    }
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res
+          .status(401)
+          .json({ error: 'Unauthorized: No token provided' });
+      }
 
-    const token = authHeader.split(' ')[1];
+      const token = authHeader.split(' ')[1];
 
-    const decodedToken = await admin.auth().verifyIdToken(token);
+      const decodedToken = await admin.auth().verifyIdToken(token);
 
-    if (!decodedToken) {
+      if (!decodedToken) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Token verification failed:', error);
       return res.status(401).json({ error: 'Unauthorized: Invalid token' });
     }
-
+  } else {
+    // In development mode, skip token verification
     next();
-  } catch (error) {
-    console.error('Token verification failed:', error);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
 };

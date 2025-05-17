@@ -1,11 +1,14 @@
 import admin from 'firebase-admin';
 
-export const firestore = () => {
+export const firestore = async () => {
   if (!admin.apps.length) {
-    const credentials = process.env.GOOGLE_CREDENTIALS;
+    const __dirname = new URL('../', import.meta.url).pathname;
+    const credentialsPath = `${__dirname}credentials.json`;
     admin.initializeApp({
-      credential: admin.credential.cert(`./${credentials}`),
+      credential: admin.credential.cert(credentialsPath),
     });
+  } else {
+    console.log('Firebase app already initialized');
   }
   return admin.firestore();
 };

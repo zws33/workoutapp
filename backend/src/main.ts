@@ -1,29 +1,32 @@
 import express from 'express';
-import dotenv from 'dotenv';
-import { GoogleSheetsService } from './googleSheetsService';
-import { verifyToken } from './authenticate';
-import { firestore } from './firstoreDb';
-import { WorkoutRepository } from './workoutRepository';
+import { GoogleSheetsService } from './googleSheetsService.ts';
+import { verifyToken } from './authenticate.ts';
+import { firestore } from './firstoreDb.ts';
+import { WorkoutRepository } from './workoutRepository.ts';
 
-dotenv.config();
-
+const PORT = Deno.env.get('PORT') || 3000;
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(express.json());
 
 app.use(express.static('public'));
 
-const isProd = process.env.NODE_ENV === 'production';
-
-const sheetId = process.env.GOOGLE_SHEET_ID;
+const sheetId = Deno.env.get('GOOGLE_SHEET_ID');
 if (!sheetId) {
   throw new Error('GOOGLE_SHEET_ID environment variable not set');
 }
 
 const sheetsService = new GoogleSheetsService(sheetId);
-const db = firestore();
-const repository = new WorkoutRepository(sheetsService, db);
+let repository: WorkoutRepository;
+try {
+  const db = await firestore();
+  const result = await db.collection('workouts').doc('Week 1').get();
+  console.log(result.data);
+  repository = new WorkoutRepository(sheetsService, db);
+} catch (error) {
+  console.error('Error initializing Firestore:', error);
+  throw new Error('Failed to initialize Firestore');
+}
+
 repository.startCronJob();
 
 app.get('/api/sheets', verifyToken, async (req, res) => {

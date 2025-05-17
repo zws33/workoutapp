@@ -18,7 +18,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     private let isProd: Bool
     private let authManager: AuthManager
     
-    init(session: URLSession = .shared, isProd: Bool = true, authManager: AuthManager) {
+    init(session: URLSession = .shared, isProd: Bool = false, authManager: AuthManager) {
         self.session = session
         self.isProd = isProd
         self.authManager = authManager

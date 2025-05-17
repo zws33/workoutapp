@@ -1,5 +1,4 @@
 import { google, sheets_v4 } from 'googleapis';
-import * as path from 'path';
 
 export class GoogleSheetsService {
   private sheets: sheets_v4.Sheets;
@@ -7,9 +6,9 @@ export class GoogleSheetsService {
   constructor(spreadsheetId: string) {
     this.sheets = google.sheets('v4');
     this.spreadsheetId = spreadsheetId;
-    const credentials = process.env.GOOGLE_CREDENTIALS;
+    const credentials = Deno.env.get('GOOGLE_CREDENTIALS');
     const auth = new google.auth.GoogleAuth({
-      keyFile: path.join(__dirname, `../${credentials}`),
+      keyFile: credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     this.sheets = google.sheets({ version: 'v4', auth });
@@ -22,7 +21,6 @@ export class GoogleSheetsService {
    * @returns Array of row data
    */
   async getSheetData(sheetName: string, range?: string) {
-    try {
       const fullRange = range ? `${sheetName}!${range}` : sheetName;
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
@@ -36,10 +34,6 @@ export class GoogleSheetsService {
       }
 
       return rows;
-    } catch (error) {
-      console.error('Error fetching Google Sheet data:', error);
-      throw error;
-    }
   }
 
   /**

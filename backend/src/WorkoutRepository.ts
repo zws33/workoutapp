@@ -1,13 +1,11 @@
-import { GoogleSheetsService } from './googleSheetsService';
+import { GoogleSheetsService } from './googleSheetsService.ts';
 import {
   addExercise,
   createWorkout,
   Group,
-  GroupList,
   Workout,
   WorkoutGroup,
-} from './models';
-import cron from 'node-cron';
+} from './models.ts';
 
 const WORKOUTS_COLLECTION = 'workouts';
 
@@ -23,7 +21,7 @@ export class WorkoutRepository {
   }
 
   startCronJob(): void {
-    cron.schedule('0 0 * * *', async () => {
+    Deno.cron('sycnronize workout data', '0 0 * * *', async () => {
       console.log('Running cron job to fetch workout data...');
       try {
         const sheets = await this.googleSheetsService.getSheetNames();
@@ -45,7 +43,6 @@ export class WorkoutRepository {
   }
 
   async getWorkoutData(sheetName: string): Promise<WorkoutGroup> {
-    try {
       const snapshot = await this.db
         .collection(WORKOUTS_COLLECTION)
         .doc(sheetName)
@@ -55,10 +52,6 @@ export class WorkoutRepository {
         throw new Error(`Workout document for ${sheetName} does not exist.`);
       }
       return snapshot.data() as WorkoutGroup;
-    } catch (error) {
-      console.error(`Error getting data for ${sheetName}:`, error);
-      throw new Error(`Failed to fetch data for ${sheetName}`);
-    }
   }
 }
 
@@ -67,7 +60,6 @@ export function createWorkoutGroup(name: string, rows: string[][]) {
 
   rows.slice(1).forEach((row) => {
     const [day, group, name, sets, reps, weight, notes] = row;
-
     const workout = workouts[day] ?? createWorkout(day);
 
     addExercise(workout, group as Group, {
