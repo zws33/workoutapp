@@ -11,8 +11,6 @@ import cron from 'node-cron';
 
 const WORKOUTS_COLLECTION = 'workouts';
 
-type SheetsResponse = string[][];
-
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;
   private db: FirebaseFirestore.Firestore;
@@ -64,7 +62,7 @@ export class WorkoutRepository {
   }
 }
 
-export function createWorkoutGroup(name: string, rows: SheetsResponse) {
+export function createWorkoutGroup(name: string, rows: string[][]) {
   const workouts: Record<string, Workout> = {};
 
   rows.slice(1).forEach((row) => {
