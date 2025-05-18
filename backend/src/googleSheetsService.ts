@@ -7,8 +7,9 @@ export class GoogleSheetsService {
   constructor(spreadsheetId: string) {
     this.sheets = google.sheets('v4');
     this.spreadsheetId = spreadsheetId;
+    const credentials = process.env.GOOGLE_CREDENTIALS;
     const auth = new google.auth.GoogleAuth({
-      keyFile: path.join(__dirname, '../credentials.json'),
+      keyFile: path.join(__dirname, `../${credentials}`),
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     this.sheets = google.sheets({ version: 'v4', auth });

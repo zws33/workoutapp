@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { GoogleSheetsService } from './googleSheetsService';
-import { verifyGoogleToken } from './authenticate';
+import { verifyToken } from './authenticate';
 import { firestore } from './firstoreDb';
 import { WorkoutRepository } from './workoutRepository';
 
@@ -26,7 +26,7 @@ const db = firestore();
 const repository = new WorkoutRepository(sheetsService, db);
 repository.startCronJob();
 
-app.get('/api/sheets', verifyGoogleToken, async (req, res) => {
+app.get('/api/sheets', verifyToken, async (req, res) => {
   try {
     const sheetNames = await sheetsService.getSheetNames();
     res.json(sheetNames);
@@ -36,7 +36,7 @@ app.get('/api/sheets', verifyGoogleToken, async (req, res) => {
   }
 });
 
-app.get('/api/sheets/:sheetName', verifyGoogleToken, async (req, res) => {
+app.get('/api/sheets/:sheetName', verifyToken, async (req, res) => {
   const { sheetName } = req.params;
   try {
     const data = await sheetsService.getSheetData(sheetName);
@@ -49,7 +49,7 @@ app.get('/api/sheets/:sheetName', verifyGoogleToken, async (req, res) => {
   }
 });
 
-app.get('/api/workouts/:week', verifyGoogleToken, async (req, res) => {
+app.get('/api/workouts/:week', verifyToken, async (req, res) => {
   const { week } = req.params;
   try {
     const data = await repository.getWorkoutData(week);
