@@ -68,24 +68,13 @@ export function createWorkoutGroup(name: string, rows: string[][]) {
   rows.slice(1).forEach((row) => {
     const [day, group, name, sets, reps, weight, notes] = row;
 
-    if (
-      typeof day !== 'string' ||
-      typeof group !== 'string' ||
-      typeof name !== 'string' ||
-      !GroupList.includes(group.toLowerCase() as Group)
-    ) {
-      throw new Error(
-        `Invalid data format. Expected day, group, name, sets, reps, weight, notes. Received: ${row}`
-      );
-    }
-
     const workout = workouts[day] ?? createWorkout(day);
 
     addExercise(workout, group as Group, {
       name,
       sets: parseInt(sets) || 0,
       reps: parseInt(reps) || 0,
-      weight: parseFloat(weight) || 0,
+      weight: weight || '-',
       notes: notes ?? '',
     });
     workouts[day] = workout;
