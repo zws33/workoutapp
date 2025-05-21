@@ -5,7 +5,7 @@ import {
   Group,
   GroupList,
   Workout,
-  WorkoutGroup,
+  Schedule,
 } from './models';
 import cron from 'node-cron';
 
@@ -44,7 +44,7 @@ export class WorkoutRepository {
     });
   }
 
-  async getWorkoutData(sheetName: string): Promise<WorkoutGroup> {
+  async getWorkoutData(sheetName: string): Promise<Schedule> {
     try {
       const snapshot = await this.db
         .collection(WORKOUTS_COLLECTION)
@@ -54,7 +54,7 @@ export class WorkoutRepository {
       if (!snapshot.exists) {
         throw new Error(`Workout document for ${sheetName} does not exist.`);
       }
-      return snapshot.data() as WorkoutGroup;
+      return snapshot.data() as Schedule;
     } catch (error) {
       console.error(`Error getting data for ${sheetName}:`, error);
       throw new Error(`Failed to fetch data for ${sheetName}`);

@@ -14,7 +14,7 @@ export interface Workout {
   exercises: Partial<Record<Group, Exercise[]>>;
 }
 
-export interface WorkoutGroup {
+export interface Schedule {
   name: string;
   workouts: Record<string, Workout>;
 }
