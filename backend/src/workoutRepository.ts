@@ -1,9 +1,8 @@
-import { GoogleSheetsService } from './googleSheetsService';
+import {GoogleSheetsService} from './googleSheetsService';
 import {
   addExercise,
   createWorkout,
   Group,
-  GroupList,
   Workout,
   Schedule,
 } from './models';
@@ -14,6 +13,7 @@ const WORKOUTS_COLLECTION = 'workouts';
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;
   private db: FirebaseFirestore.Firestore;
+
   constructor(
     googleSheetsService: GoogleSheetsService,
     db: FirebaseFirestore.Firestore
@@ -45,20 +45,15 @@ export class WorkoutRepository {
   }
 
   async getWorkoutData(sheetName: string): Promise<Schedule> {
-    try {
-      const snapshot = await this.db
-        .collection(WORKOUTS_COLLECTION)
-        .doc(sheetName)
-        .get();
+    const snapshot = await this.db
+      .collection(WORKOUTS_COLLECTION)
+      .doc(sheetName)
+      .get();
 
-      if (!snapshot.exists) {
-        throw new Error(`Workout document for ${sheetName} does not exist.`);
-      }
-      return snapshot.data() as Schedule;
-    } catch (error) {
-      console.error(`Error getting data for ${sheetName}:`, error);
-      throw new Error(`Failed to fetch data for ${sheetName}`);
+    if (!snapshot.exists) {
+      throw new Error(`Workout document for ${sheetName} does not exist.`);
     }
+    return snapshot.data() as Schedule;
   }
 }
 
