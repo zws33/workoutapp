@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { GoogleSheetsService } from './googleSheetsService';
 import { verifyToken } from './authenticate';
-import { firestore } from './firstoreDb';
+import { getWorkoutDb } from './workoutDb';
 import { WorkoutRepository } from './workoutRepository';
 
 dotenv.config();
@@ -11,10 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-
 app.use(express.static('public'));
-
-const isProd = process.env.NODE_ENV === 'production';
 
 const sheetId = process.env.GOOGLE_SHEET_ID;
 if (!sheetId) {
@@ -22,8 +19,8 @@ if (!sheetId) {
 }
 
 const sheetsService = new GoogleSheetsService(sheetId);
-const db = firestore();
-const repository = new WorkoutRepository(sheetsService, db);
+const workoutDb = getWorkoutDb();
+const repository = new WorkoutRepository(sheetsService, workoutDb);
 repository.startCronJob();
 
 app.get('/api/sheets', verifyToken, async (req, res) => {

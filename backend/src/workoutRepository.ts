@@ -7,16 +7,15 @@ import {
   Schedule,
 } from './models';
 import cron from 'node-cron';
-
-const WORKOUTS_COLLECTION = 'workouts';
+import {WorkoutDb} from "./workoutDb";
 
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;
-  private db: FirebaseFirestore.Firestore;
+  private db: WorkoutDb;
 
   constructor(
     googleSheetsService: GoogleSheetsService,
-    db: FirebaseFirestore.Firestore
+    db: WorkoutDb
   ) {
     this.googleSheetsService = googleSheetsService;
     this.db = db;
@@ -30,11 +29,8 @@ export class WorkoutRepository {
         await Promise.all(
           sheets.map(async (sheetName) => {
             const data = await this.googleSheetsService.getSheetData(sheetName);
-            const workoutGroup = createWorkoutGroup(sheetName, data);
-            await this.db
-              .collection(WORKOUTS_COLLECTION)
-              .doc(workoutGroup.name)
-              .set(workoutGroup);
+            const schedule = createWorkoutGroup(sheetName, data);
+            await this.db.saveSchedule(schedule);
           })
         );
         console.log('Workout data successfully updated in Firestore.');
@@ -45,15 +41,11 @@ export class WorkoutRepository {
   }
 
   async getWorkoutData(sheetName: string): Promise<Schedule> {
-    const snapshot = await this.db
-      .collection(WORKOUTS_COLLECTION)
-      .doc(sheetName)
-      .get();
-
-    if (!snapshot.exists) {
+    const schedule = await this.db.getScheduleByName(sheetName);
+    if(!schedule) {
       throw new Error(`Workout document for ${sheetName} does not exist.`);
     }
-    return snapshot.data() as Schedule;
+    return schedule;
   }
 }
 
