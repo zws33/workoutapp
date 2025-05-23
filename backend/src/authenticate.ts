@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import { Request, Response, NextFunction } from 'express';
+import {Request, Response, NextFunction} from 'express';
 
 /**
  * Middleware to verify Google OAuth tokens
@@ -9,25 +9,29 @@ export const verifyToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    // Get the token from the Authorization header
-    const authHeader = req.headers.authorization;
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      // Get the token from the Authorization header
+      const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({error: 'Unauthorized: No token provided'});
+      }
+
+      const token = authHeader.split(' ')[1];
+
+      const decodedToken = await admin.auth().verifyIdToken(token);
+
+      if (!decodedToken) {
+        return res.status(401).json({error: 'Unauthorized: Invalid token'});
+      }
+
+      next();
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return res.status(401).json({error: 'Unauthorized: Invalid token'});
     }
-
-    const token = authHeader.split(' ')[1];
-
-    const decodedToken = await admin.auth().verifyIdToken(token);
-
-    if (!decodedToken) {
-      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-    }
-
+  } else {
     next();
-  } catch (error) {
-    console.error('Token verification failed:', error);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
 };
