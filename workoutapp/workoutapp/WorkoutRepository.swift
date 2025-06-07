@@ -9,7 +9,7 @@ import Foundation
 import GoogleSignIn
 
 protocol WorkoutRepository {
-    func fetchWorkouts(for week: String) async throws -> WorkoutGroup
+    func fetchSchedule(for week: String) async throws -> Schedule
     func fetchWeeks() async throws -> [String]
 }
 
@@ -32,14 +32,12 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         URL(string: "\(baseURL)/api/workouts/\(week)")!
     }
     
-    func fetchWorkouts(for week: String) async throws -> WorkoutGroup {
+    func fetchSchedule(for week: String) async throws -> Schedule {
         var request = URLRequest(url: workoutsURL(for: week))
         request.httpMethod = "GET"
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         
-        guard let idToken = authManager.token else {
-            throw AuthError.missingToken
-        }
+        let idToken = try await authManager.getIDToken()
         request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
         
         let (data, response) = try await session.data(for: request)
@@ -47,13 +45,11 @@ class WorkoutRepositoryImpl: WorkoutRepository {
               (200...299).contains(httpResponse.statusCode) else {
             throw NetworkError.invalidResponse
         }
-        print("ok")
         
         do {
-            let workout = try createWorkoutGroup(from: data)
-            return workout
+            return try createWorkoutGroup(from: data)
         } catch {
-            print("error")
+            print(error)
             throw NetworkError.decodingFailed(error)
         }
     }
@@ -62,9 +58,8 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         let url = URL(string: "\(baseURL)/api/sheets")!
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        guard let idToken = authManager.token else {
-            throw AuthError.missingToken
-        }
+        
+        let idToken = try await authManager.getIDToken()
         request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
         
         let (data, response): (Data, URLResponse)
@@ -89,9 +84,9 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
 }
 
-func createWorkoutGroup(from data: Data) throws -> WorkoutGroup {
+func createWorkoutGroup(from data: Data) throws -> Schedule {
     let decoder = JSONDecoder()
-    return try decoder.decode(WorkoutGroup.self, from: data)
+    return try decoder.decode(Schedule.self, from: data)
 }
 
 struct FakeWorkoutRepository: WorkoutRepository {
@@ -100,14 +95,14 @@ struct FakeWorkoutRepository: WorkoutRepository {
         return ["Week 1"]
     }
     
-    func fetchWorkouts(for week: String) async throws -> WorkoutGroup {
-        WorkoutGroup(
+    func fetchSchedule(for week: String) async throws -> Schedule {
+        Schedule(
             name: "Week 1",
             workouts: [
                 "1" : WorkoutDay(
                     day: "1",
                     exercises : [
-                        "primary" : [Exercise(name: "pushups", sets: 1, reps: 10, weight: 35, notes: "")]
+                        "primary" : [Exercise(name: "pushups", sets: 1, reps: 10, weight: "35", notes: "")]
                     ]
                 )
             ]

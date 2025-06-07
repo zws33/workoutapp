@@ -1,16 +1,10 @@
-import admin, {firestore} from 'firebase-admin';
-import {Schedule} from "./models";
+import { getFirestore } from 'firebase-admin/firestore';
 
-let firestoreDb: firestore.Firestore;
+import {Schedule} from './models.js';
+
 const WORKOUTS_COLLECTION = 'workouts';
 export const getWorkoutDb = (): WorkoutDb => {
-  if (!admin.apps.length) {
-    const credentials = process.env.GOOGLE_CREDENTIALS;
-    admin.initializeApp({
-      credential: admin.credential.cert(`./${credentials}`),
-    });
-  }
-  firestoreDb = admin.firestore();
+  let firestoreDb = getFirestore();
   return {
     saveSchedule: async (schedule: Schedule) => {
       await firestoreDb

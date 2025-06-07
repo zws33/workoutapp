@@ -1,11 +1,9 @@
 import express from 'express';
-import dotenv from 'dotenv';
-import { GoogleSheetsService } from './googleSheetsService';
-import { verifyToken } from './authenticate';
-import { getWorkoutDb } from './workoutDb';
-import { WorkoutRepository } from './workoutRepository';
-
-dotenv.config();
+import 'dotenv/config';
+import { GoogleSheetsService } from './googleSheetsService.js';
+import {authenticateUser, verifyToken} from './authenticate.js'
+import { getWorkoutDb } from './workoutDb.js'
+import { WorkoutRepository } from './workoutRepository.js'
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,9 +19,10 @@ if (!sheetId) {
 const sheetsService = new GoogleSheetsService(sheetId);
 const workoutDb = getWorkoutDb();
 const repository = new WorkoutRepository(sheetsService, workoutDb);
+await repository.syncWorkoutData();
 repository.startCronJob();
 
-app.get('/api/sheets', verifyToken, async (req, res) => {
+app.get('/api/sheets', authenticateUser, async (req, res) => {
   try {
     const sheetNames = await sheetsService.getSheetNames();
     res.json(sheetNames);
@@ -33,7 +32,7 @@ app.get('/api/sheets', verifyToken, async (req, res) => {
   }
 });
 
-app.get('/api/sheets/:sheetName', verifyToken, async (req, res) => {
+app.get('/api/sheets/:sheetName', authenticateUser, async (req, res) => {
   const { sheetName } = req.params;
   try {
     const data = await sheetsService.getSheetData(sheetName);

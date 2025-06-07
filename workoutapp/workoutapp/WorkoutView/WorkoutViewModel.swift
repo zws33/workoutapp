@@ -24,7 +24,8 @@ class WorkoutViewModel: ObservableObject {
     func getWorkouts() async {
         state = .loading
         do {
-            let workouts = try await repository.fetchWorkouts(for: selectedWeek)
+            let workouts = try await repository.fetchSchedule(for: selectedWeek)
+            print(workouts)
             state = .data(workouts)
         } catch {
             state = .error(error.localizedDescription)
@@ -35,5 +36,5 @@ class WorkoutViewModel: ObservableObject {
 enum WorkoutViewState: Equatable {
     case loading
     case error(String)
-    case data(WorkoutGroup)
+    case data(Schedule)
 }

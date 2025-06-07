@@ -1,5 +1,5 @@
 import { google, sheets_v4 } from 'googleapis';
-import * as path from 'path';
+import Schema$Sheet = sheets_v4.Schema$Sheet;
 
 export class GoogleSheetsService {
   private sheets: sheets_v4.Sheets;
@@ -9,7 +9,7 @@ export class GoogleSheetsService {
     this.spreadsheetId = spreadsheetId;
     const credentials = process.env.GOOGLE_CREDENTIALS;
     const auth = new google.auth.GoogleAuth({
-      keyFile: path.join(__dirname, `../${credentials}`),
+      keyFile: credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     this.sheets = google.sheets({ version: 'v4', auth });
@@ -34,6 +34,7 @@ export class GoogleSheetsService {
       if (!rows || rows.length === 0) {
         throw new Error('No data found in the sheet');
       }
+      console.log(`Fetched ${rows.length} rows from ${sheetName}`);
 
       return rows;
     } catch (error) {
@@ -51,7 +52,7 @@ export class GoogleSheetsService {
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
-      return response.data.sheets!.map((sheet) => sheet.properties!.title!);
+      return response.data.sheets!.map((sheet:  Schema$Sheet) => sheet.properties!.title!);
     } catch (error) {
       console.error('Error getting sheet names:', error);
       throw error;

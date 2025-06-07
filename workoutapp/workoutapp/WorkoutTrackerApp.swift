@@ -5,6 +5,8 @@ import GoogleSignIn
 
 @main
 struct WorkoutTrackerApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
     @StateObject var authManager = AuthManagerImpl.shared
     
     let repository: WorkoutRepository
@@ -41,7 +43,12 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Sign Out") {
-                            authManager.signOut()
+                            do {
+                                try authManager.signOut()
+                            } catch {
+                                // Handle error (log it, show alert, etc.)
+                                print("Sign-out failed:", error.localizedDescription)
+                            }
                         }
                     }
                 }

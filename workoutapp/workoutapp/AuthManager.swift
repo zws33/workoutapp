@@ -8,12 +8,14 @@
 
 import SwiftUI
 import GoogleSignIn
+import FirebaseAuth
 
 protocol AuthManager {
     var authState: AuthState { get }
-    var token: String? { get }
-    func signIn(completion: @escaping (Bool) -> Void)
-    func signOut()
+    func getIDToken() async throws -> String
+    func signInWithEmailAndPassword(email: String, password: String) async throws
+    func createUser(email: String, password: String) async throws
+    func signOut() throws
 }
 
 class AuthManagerImpl: ObservableObject, AuthManager {
@@ -21,40 +23,35 @@ class AuthManagerImpl: ObservableObject, AuthManager {
     
     @Published var authState = AuthState.signedOut
     
-    var token: String? {
-        GIDSignIn.sharedInstance.currentUser?.idToken?.tokenString
+    func getIDToken() async throws -> String {
+        guard let user = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently signed in."])
+        }
+        return try await user.getIDToken(forcingRefresh: true)
     }
     
     init() {
-        // Restore previous sign-in if it exists
-        if GIDSignIn.sharedInstance.hasPreviousSignIn() {
-            GIDSignIn.sharedInstance.restorePreviousSignIn { [weak self] user, error in
-                self?.authState = user != nil ? .signedIn : .signedOut
+
+    }
+    
+    func signInWithEmailAndPassword(email: String, password: String) async throws {
+        do {
+            try await Auth.auth().signIn(withEmail: email, password: password)
+            await MainActor.run {
+                self.authState = .signedIn
             }
+        } catch {
+            print(error)
         }
+
     }
     
-    func signIn(completion: @escaping (Bool) -> Void) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first,
-              let rootViewController = window.rootViewController else {
-            completion(false)
-            return
-        }
-        
-        // Configure GIDSignIn and sign in
-        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
-        
-        GIDSignIn.sharedInstance.signIn(
-            withPresenting: rootViewController
-        ) { result, error in
-            self.authState = result?.user != nil ? .signedIn : .signedOut
-            completion(error == nil)
-        }
+    func createUser(email: String, password: String) async throws {
+        try await Auth.auth().createUser(withEmail: email, password: password)
     }
     
-    func signOut() {
-        GIDSignIn.sharedInstance.signOut()
+    func signOut() throws {
+        try Auth.auth().signOut()
         self.authState = .signedOut
     }
 }

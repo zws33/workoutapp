@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WorkoutGroup: Codable, Equatable {
+struct Schedule: Codable, Equatable {
     let name: String
     let workouts: [String: WorkoutDay]
 }
@@ -21,6 +21,6 @@ struct Exercise: Codable, Equatable {
     let name: String
     let sets: Int
     let reps: Int
-    let weight: Int
+    let weight: String
     let notes: String
 }

@@ -133,7 +133,7 @@ struct ExerciseRow: View {
                 Text("Sets: \(exercise.sets)")
                 let reps = exercise.reps != 0 ? String(exercise.reps) : "-"
                 Text("Reps: \(reps)")
-                if exercise.weight != 0 {
+                if exercise.weight != "-" {
                     Text("Weight: \(exercise.weight)")
                 }
             }
@@ -173,16 +173,24 @@ struct ExerciseListView_Previews: PreviewProvider {
     static var previews: some View {
         let exercises = [
             Exercise(
-                name: "Push ups", sets: 3 ,reps: 10, weight: 30, notes: "elbows in"
+                name: "Push ups",
+                sets: 3 ,
+                reps: 10,
+                weight: "30",
+                notes: "elbows in"
             ), Exercise(
                 name: "Lunges",
                 sets: 3,
                 reps: 10,
-                weight: 30,
+                weight: "30",
                 notes: ""
             ),
             Exercise(
-                name: "400m Run", sets: 3 ,reps: 10, weight: 30, notes: ""
+                name: "400m Run", 
+                sets: 3 ,
+                reps: 10,
+                weight: "30",
+                notes: ""
             )
         ]
         ExerciseListView(exercises: ["1": exercises])

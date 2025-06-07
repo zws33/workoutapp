@@ -1,13 +1,13 @@
-import {GoogleSheetsService} from './googleSheetsService';
+import {GoogleSheetsService} from './googleSheetsService.js';
 import {
   addExercise,
   createWorkout,
   Group,
   Workout,
   Schedule,
-} from './models';
+} from './models.js';
 import cron from 'node-cron';
-import {WorkoutDb} from "./workoutDb";
+import {WorkoutDb} from './workoutDb.js';
 
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;
@@ -24,20 +24,24 @@ export class WorkoutRepository {
   startCronJob(): void {
     cron.schedule('0 0 * * *', async () => {
       console.log('Running cron job to fetch workout data...');
-      try {
-        const sheets = await this.googleSheetsService.getSheetNames();
-        await Promise.all(
-          sheets.map(async (sheetName) => {
-            const data = await this.googleSheetsService.getSheetData(sheetName);
-            const schedule = createWorkoutGroup(sheetName, data);
-            await this.db.saveSchedule(schedule);
-          })
-        );
-        console.log('Workout data successfully updated in Firestore.');
-      } catch (error) {
-        console.error('Error during cron job:', error);
-      }
+      await this.syncWorkoutData();
     });
+  }
+
+  async syncWorkoutData() {
+    try {
+      const sheets = await this.googleSheetsService.getSheetNames();
+      await Promise.all(
+        sheets.map(async (sheetName: string) => {
+          const data = await this.googleSheetsService.getSheetData(sheetName);
+          const schedule = createWorkoutGroup(sheetName, data);
+          await this.db.saveSchedule(schedule);
+        })
+      );
+      console.log('Workout data successfully updated in Firestore.');
+    } catch (error) {
+      console.error('Error during cron job:', error);
+    }
   }
 
   async getWorkoutData(sheetName: string): Promise<Schedule> {

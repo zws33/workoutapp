@@ -10,7 +10,7 @@ yarn-error.log*
 
 # Service account key
 *credentials.json
-
+*service-account.json
 # IOS Secrets
 secret.swift
 
