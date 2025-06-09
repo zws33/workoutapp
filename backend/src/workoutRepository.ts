@@ -34,7 +34,7 @@ export class WorkoutRepository {
       await Promise.all(
         sheets.map(async (sheetName: string) => {
           const data = await this.googleSheetsService.getSheetData(sheetName);
-          const schedule = createWorkoutGroup(sheetName, data);
+          const schedule = createSchedule(sheetName, data);
           await this.db.saveSchedule(schedule);
         })
       );
@@ -46,6 +46,7 @@ export class WorkoutRepository {
 
   async getWorkoutData(sheetName: string): Promise<Schedule> {
     const schedule = await this.db.getScheduleByName(sheetName);
+    console.dir(schedule, {depth: null});
     if(!schedule) {
       throw new Error(`Workout document for ${sheetName} does not exist.`);
     }
@@ -53,22 +54,28 @@ export class WorkoutRepository {
   }
 }
 
-export function createWorkoutGroup(name: string, rows: string[][]) {
-  const workouts: Record<string, Workout> = {};
+export function createSchedule(name: string, rows: string[][]) {
+  const workouts: Workout[] = [];
 
   rows.slice(1).forEach((row) => {
     const [day, group, name, sets, reps, weight, notes] = row;
 
-    const workout = workouts[day] ?? createWorkout(day);
+    let workout = workouts.find((w) => w.day === day);
 
-    addExercise(workout, group as Group, {
+    if (!workout) {
+      workout = createWorkout(day);
+      workouts.push(workout);
+    }
+
+    const exercise = {
       name,
       sets: parseInt(sets) || 0,
       reps: parseInt(reps) || 0,
       weight: weight || '-',
       notes: notes ?? '',
-    });
-    workouts[day] = workout;
+    }
+
+    addExercise(workout, group as Group, exercise);
   });
 
   return {

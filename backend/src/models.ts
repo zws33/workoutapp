@@ -16,7 +16,7 @@ export interface Workout {
 
 export interface Schedule {
   name: string;
-  workouts: Record<string, Workout>;
+  workouts: Workout[];
 }
 
 export function createWorkout(day: string): Workout {

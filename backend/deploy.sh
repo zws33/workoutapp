@@ -33,8 +33,8 @@ docker push $LATEST_TAG
 echo "Deploying to Google Cloud Run with image: $TAG"
 gcloud run deploy workout-app \
   --image $TAG \
-  --platform managed \
   --region us-east1 \
-  --allow-unauthenticated
+  --platform managed \
+  --allow-unauthenticated \
 
 echo "Deployment complete!"

@@ -1,18 +1,18 @@
-import { google, sheets_v4 } from 'googleapis';
+import {google, sheets_v4} from 'googleapis';
 import Schema$Sheet = sheets_v4.Schema$Sheet;
 
 export class GoogleSheetsService {
   private sheets: sheets_v4.Sheets;
-  private spreadsheetId: string;
+  private readonly spreadsheetId: string;
+
   constructor(spreadsheetId: string) {
     this.sheets = google.sheets('v4');
     this.spreadsheetId = spreadsheetId;
-    const credentials = process.env.GOOGLE_CREDENTIALS;
     const auth = new google.auth.GoogleAuth({
-      keyFile: credentials,
+      keyFile: './secrets/service-account.json',
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
-    this.sheets = google.sheets({ version: 'v4', auth });
+    this.sheets = google.sheets({version: 'v4', auth});
   }
 
   /**
@@ -22,25 +22,20 @@ export class GoogleSheetsService {
    * @returns Array of row data
    */
   async getSheetData(sheetName: string, range?: string) {
-    try {
-      const fullRange = range ? `${sheetName}!${range}` : sheetName;
-      const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId: this.spreadsheetId,
-        range: fullRange,
-      });
+    const fullRange = range ? `${sheetName}!${range}` : sheetName;
+    const response = await this.sheets.spreadsheets.values.get({
+      spreadsheetId: this.spreadsheetId,
+      range: fullRange,
+    });
 
-      const rows = response.data.values;
+    const rows = response.data.values;
 
-      if (!rows || rows.length === 0) {
-        throw new Error('No data found in the sheet');
-      }
-      console.log(`Fetched ${rows.length} rows from ${sheetName}`);
-
-      return rows;
-    } catch (error) {
-      console.error('Error fetching Google Sheet data:', error);
-      throw error;
+    if (!rows || rows.length === 0) {
+      throw new Error('No data found in the sheet');
     }
+    console.log(`Fetched ${rows.length} rows from ${sheetName}`);
+
+    return rows;
   }
 
   /**
@@ -52,7 +47,7 @@ export class GoogleSheetsService {
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
-      return response.data.sheets!.map((sheet:  Schema$Sheet) => sheet.properties!.title!);
+      return response.data.sheets!.map((sheet: Schema$Sheet) => sheet.properties!.title!);
     } catch (error) {
       console.error('Error getting sheet names:', error);
       throw error;

@@ -1,7 +1,7 @@
 import express from 'express';
 import 'dotenv/config';
 import { GoogleSheetsService } from './googleSheetsService.js';
-import {authenticateUser, verifyToken} from './authenticate.js'
+import { authenticateUser } from './authenticate.js'
 import { getWorkoutDb } from './workoutDb.js'
 import { WorkoutRepository } from './workoutRepository.js'
 
@@ -45,7 +45,7 @@ app.get('/api/sheets/:sheetName', authenticateUser, async (req, res) => {
   }
 });
 
-app.get('/api/workouts/:week', verifyToken, async (req, res) => {
+app.get('/api/workouts/:week', authenticateUser, async (req, res) => {
   const { week } = req.params;
   try {
     const data = await repository.getWorkoutData(week);
