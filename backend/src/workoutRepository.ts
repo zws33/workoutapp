@@ -46,7 +46,6 @@ export class WorkoutRepository {
 
   async getWorkoutData(sheetName: string): Promise<Schedule> {
     const schedule = await this.db.getScheduleByName(sheetName);
-    console.dir(schedule, {depth: null});
     if(!schedule) {
       throw new Error(`Workout document for ${sheetName} does not exist.`);
     }

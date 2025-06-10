@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ESNext",                  // ES2022 enables top-level await
+    "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "outDir": "./dist",
