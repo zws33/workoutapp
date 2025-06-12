@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { Exercise } from '../types/Exercise';
-import './ExerciseForm.css';
 
 interface ExerciseFormProps {
   onSubmit: (exercise: Exercise) => void;
@@ -31,13 +30,14 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="exercise-form">
-      <h2>Add Exercise</h2>
+    <form onSubmit={handleSubmit} className="card p-3 bg-light shadow-sm mx-auto" style={{ maxWidth: '500px' }}>
+      <h5 className="text-center mb-3">Add Exercise</h5>
 
-      <div className="form-group">
-        <label htmlFor="name">Exercise Name</label>
+      <div className="mb-2">
+        <label htmlFor="name" className="form-label fw-bold mb-1">Exercise Name</label>
         <input
           type="text"
+          className="form-control form-control-sm"
           id="name"
           name="name"
           value={exercise.name}
@@ -47,55 +47,59 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="sets">Sets</label>
-        <input
-          type="number"
-          id="sets"
-          name="sets"
-          value={exercise.sets === null ? '' : exercise.sets}
-          onChange={handleChange}
-          placeholder="e.g. 3"
-        />
+      <div className="row g-2 mb-2">
+        <div className="col-4">
+          <label htmlFor="sets" className="form-label fw-bold mb-1">Sets</label>
+          <input
+            type="number"
+            className="form-control form-control-sm"
+            id="sets"
+            name="sets"
+            value={exercise.sets === null ? '' : exercise.sets}
+            onChange={handleChange}
+            placeholder="e.g. 3"
+          />
+        </div>
+        <div className="col-4">
+          <label htmlFor="reps" className="form-label fw-bold mb-1">Reps</label>
+          <input
+            type="number"
+            className="form-control form-control-sm"
+            id="reps"
+            name="reps"
+            value={exercise.reps === null ? '' : exercise.reps}
+            onChange={handleChange}
+            placeholder="e.g. 10"
+          />
+        </div>
+        <div className="col-4">
+          <label htmlFor="weight" className="form-label fw-bold mb-1">Weight</label>
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            id="weight"
+            name="weight"
+            value={exercise.weight}
+            onChange={handleChange}
+            placeholder="e.g., 135 lbs"
+          />
+        </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="reps">Reps</label>
-        <input
-          type="number"
-          id="reps"
-          name="reps"
-          value={exercise.reps === null ? '' : exercise.reps}
-          onChange={handleChange}
-          placeholder="e.g. 10"
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="weight">Weight</label>
-        <input
-          type="text"
-          id="weight"
-          name="weight"
-          value={exercise.weight}
-          onChange={handleChange}
-          placeholder="e.g., 135 lbs, Body weight"
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="notes">Notes</label>
+      <div className="mb-2">
+        <label htmlFor="notes" className="form-label fw-bold mb-1">Notes</label>
         <textarea
+          className="form-control form-control-sm"
           id="notes"
           name="notes"
           value={exercise.notes}
           onChange={handleChange}
-          placeholder="Any additional notes about the exercise"
-          rows={3}
+          placeholder="Any additional notes"
+          rows={2}
         />
       </div>
 
-      <button type="submit" className="submit-button">Save Exercise</button>
+      <button type="submit" className="btn btn-primary btn-sm w-100 mt-1 fw-bold">Save Exercise</button>
     </form>
   );
 };
