@@ -1,5 +1,6 @@
 import SwiftUI
 import GoogleSignIn
+import FirebaseCore
 
 // MARK: - App Entry Point
 

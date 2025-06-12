@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>ServerEnvironments</key>
-	<dict/>
-	<key>dev</key>
-	<string>&quot;http://localhost:3000&quot;</string>
-	<key>prod</key>
-	<string>&quot;https://zwsmith.me&quot;</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.951785297505-leo3cs9atmgrl42or2clttjer184hl4f</string>
-			</array>
-		</dict>
-	</array>
-</dict>
+	<dict>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.951785297505-1372hd2q00o9neqnfc4rrj9m6d5gdrte</string>
+				</array>
+			</dict>
+		</array>
+		<key>ServerEnvironments</key>
+		<dict />
+		<key>dev</key>
+		<string>&quot;http://localhost:3000&quot;</string>
+		<key>prod</key>
+		<string>&quot;https://zwsmith.me&quot;</string>
+	</dict>
 </plist>
