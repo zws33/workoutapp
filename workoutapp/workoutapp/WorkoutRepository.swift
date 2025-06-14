@@ -15,7 +15,6 @@ import os.log
 protocol WorkoutRepository {
     func getSchedule(for week: String) async throws -> Schedule
     func fetchWeeks() async throws -> [String]
-
 }
 
 class WorkoutRepositoryImpl: WorkoutRepository {
@@ -45,7 +44,6 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
     
     func getSchedule(for week: String) async throws -> Schedule {
-        // Use background context for fetch operation
         let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
         
         let localSchedule: Schedule? = try await backgroundContext.perform {
@@ -166,23 +164,44 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 struct FakeWorkoutRepository: WorkoutRepository {
     
     func fetchWeeks() async throws -> [String] {
-        return ["Week 1"]
+        return ["Week 1", "Week 2", "Week 3"]
     }
     
     func getSchedule(for week: String) async throws -> Schedule {
         return Schedule(
-            name: "Week 1",
+            name: week,
             workouts: [
-                 Workout(
-                    day: "1",
-                    exercises : [
-                        "primary" : [Exercise(
-                            name: "pushups",
-                            sets: 1,
-                            reps: 10,
-                            weight: "35",
-                            notes: ""
-                        )]
+                Workout(
+                    day: "Monday",
+                    exercises: [
+                        "Primary": [
+                            Exercise(name: "Push-ups", sets: 3, reps: 15, weight: "Bodyweight", notes: "Keep elbows close to body"),
+                            Exercise(name: "Bench Press", sets: 4, reps: 8, weight: "135 lbs", notes: "")
+                        ],
+                        "Secondary": [
+                            Exercise(name: "Incline Dumbbell Press", sets: 3, reps: 12, weight: "40 lbs", notes: "Slow controlled movement")
+                        ]
+                    ]
+                ),
+                Workout(
+                    day: "Tuesday",
+                    exercises: [
+                        "Cardio": [
+                            Exercise(name: "Treadmill Run", sets: 1, reps: 0, weight: "", notes: "20 minutes at moderate pace")
+                        ],
+                        "Core": [
+                            Exercise(name: "Plank", sets: 3, reps: 0, weight: "", notes: "Hold for 60 seconds"),
+                            Exercise(name: "Russian Twists", sets: 3, reps: 20, weight: "15 lbs", notes: "")
+                        ]
+                    ]
+                ),
+                Workout(
+                    day: "Wednesday",
+                    exercises: [
+                        "Primary": [
+                            Exercise(name: "Squats", sets: 4, reps: 12, weight: "185 lbs", notes: "Focus on form"),
+                            Exercise(name: "Deadlifts", sets: 3, reps: 8, weight: "225 lbs", notes: "Keep back straight")
+                        ]
                     ]
                 )
             ]
