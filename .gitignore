@@ -103,3 +103,6 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 # dir for chatgpt recipes
 .chatgpt
+
+# Claude Code documentation
+claude.md
