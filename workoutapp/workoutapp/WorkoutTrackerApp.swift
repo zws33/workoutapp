@@ -40,7 +40,7 @@ struct ContentView: View {
         case .signedIn:
             NavigationStack {
                 ZStack {
-                    WeekSelectorView(repository: repository)
+                    ScheduleSelectorView(repository: repository)
                 }
                 .navigationTitle("My Workouts")
                 .toolbar {

@@ -1,22 +1,16 @@
 //
-//  WeekSelectorViewModel.swift
+//  ScheduleSelectorViewModel.swift
 //  workoutapp
 //
 //  Created by Zach Smith on 4/16/25.
 //
 
-
 import SwiftUI
-import GoogleSignIn
 
 @MainActor
-final class WeekSelectorViewModel: ObservableObject {
-    @Published var state: WeekSelectorState = .loading
-    @Published var weeks: [String] = []
-    @Published var selectedWeek: String?
-    @Published var isLoading: Bool = false
-    @Published var error: Error?
-
+final class ScheduleSelectorViewModel: ObservableObject {
+    @Published var state: ScheduleSelectorState = .loading
+    
     private let repository: WorkoutRepository
 
     init(repository: WorkoutRepository) {
@@ -27,22 +21,21 @@ final class WeekSelectorViewModel: ObservableObject {
         state = .loading
         do {
             let weeks = try await repository.fetchWeeks()
+            AppLogger.info("Loaded \(weeks.count) workout weeks", category: .general)
             state = .data(weeks: weeks)
         } catch {
+            AppLogger.error("Failed to load workout weeks", error: error, category: .networking)
             state = .error(error.localizedDescription)
         }
     }
 
     func retry() async {
+        AppLogger.info("Retrying to load workout weeks", category: .general)
         await loadWeeks()
-    }
-
-    func select(week: String) {
-        selectedWeek = week
     }
 }
 
-enum WeekSelectorState: Equatable {
+enum ScheduleSelectorState: Equatable {
     case loading
     case error(String)
     case data(weeks: [String])

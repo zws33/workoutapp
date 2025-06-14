@@ -99,27 +99,40 @@ struct ExerciseRow: View {
     @State private var open = false
 
     var body: some View {
-        DisclosureGroup(isExpanded: $open) {
-            if !exercise.notes.isEmpty {
+        if !exercise.notes.isEmpty {
+            // Show DisclosureGroup with chevron when there are notes
+            DisclosureGroup(isExpanded: $open) {
                 Text(exercise.notes)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.vertical, 4)
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(exercise.name)
-                    .font(.title3)
-                    .fontWeight(.bold)
-
-                Text(metaLine)
                     .font(.body)
                     .foregroundColor(.secondary)
-                    .accessibilityLabel(metaVoiceOver)
+                    .padding(.vertical, 4)
+            } label: {
+                ExerciseRowContent(exercise: exercise)
             }
-            .padding(.vertical, 6)   // Bigger tap target
+            .disclosureGroupStyle(.automatic)
+        } else {
+            // Show plain content without chevron when no notes
+            ExerciseRowContent(exercise: exercise)
         }
-        .disclosureGroupStyle(.automatic)
+    }
+}
+
+// Extract common content to avoid duplication
+struct ExerciseRowContent: View {
+    let exercise: Exercise
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(exercise.name)
+                .font(.title3)
+                .fontWeight(.bold)
+
+            Text(metaLine)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .accessibilityLabel(metaVoiceOver)
+        }
+        .padding(.vertical, 6)   // Bigger tap target
     }
 
     private var metaLine: String {

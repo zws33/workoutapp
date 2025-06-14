@@ -53,7 +53,7 @@ extension ScheduleEntity {
         
         // Convert WorkoutEntity to Workout
         if let workoutEntities = self.workouts?.allObjects as? [WorkoutEntity] {
-            for workoutEntity in workoutEntities {
+            for workoutEntity in workoutEntities.sorted(by:{ $0.day! < $1.day! }) {
                 let workout = try workoutEntity.toWorkout()
                 workouts.append(workout)
             }
