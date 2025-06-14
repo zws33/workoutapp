@@ -9,12 +9,9 @@ import SwiftUI
 import FirebaseAuth
 
 struct SignInView: View {
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var isSigningIn = false
+    let auth: any AuthManager = AuthManagerImpl.shared
     @State private var signInError: String? = nil
-    
-    let auth = AuthManagerImpl.shared
+    @State private var isSigningIn = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -26,20 +23,6 @@ struct SignInView: View {
                 .font(.largeTitle)
                 .bold()
 
-            TextField("Email", text: $email)
-                .keyboardType(.emailAddress)
-                .textContentType(.emailAddress)
-                .autocapitalization(.none)
-                .padding()
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(8)
-
-            SecureField("Password", text: $password)
-                .textContentType(.password)
-                .padding()
-                .background(Color(UIColor.secondarySystemBackground))
-                .cornerRadius(8)
-
             if let error = signInError {
                 Text(error)
                     .foregroundColor(.red)
@@ -50,39 +33,13 @@ struct SignInView: View {
                 ProgressView("Signing in...")
                     .padding(.top, 20)
             }
-            Button(
-                action: {
-                    Task {
-                        signInError = nil
-                        isSigningIn = true
-                        do {
-                            try await auth.signInWithEmailAndPassword(email: "zach.smith33@gmail.com", password: "password")
-                        } catch {
-                            signInError = error.localizedDescription
-                        }
-                        isSigningIn = false
-                    }
-                }
-            ) {
-                HStack {
-                    Image(systemName: "person.fill.checkmark")
-                    Text("Sign In")
-                }
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .padding(.top, 20)
-                
+
             Button(action: {
                 Task {
                     signInError = nil
                     isSigningIn = true
                     do {
-                        try await auth
-                            .createUser(email: email, password: password)
-                        // handle post-account-creation logic if needed
+                        try await auth.signInWithGoogle()
                     } catch {
                         signInError = error.localizedDescription
                     }
@@ -90,19 +47,15 @@ struct SignInView: View {
                 }
             }) {
                 HStack {
-                    Image(systemName: "person.badge.plus")
-                    Text("Create Account")
+                    Image(systemName: "globe")
+                    Text("Sign In with Google")
                 }
                 .padding()
-                .background(Color.green)
+                .background(Color.blue)
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
-            .disabled(email.isEmpty || password.isEmpty)
-            .padding(.top, 10)
-            
         }
         .padding()
     }
 }
-

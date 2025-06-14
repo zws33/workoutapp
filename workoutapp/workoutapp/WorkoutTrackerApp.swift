@@ -1,5 +1,7 @@
 import SwiftUI
 import GoogleSignIn
+import FirebaseCore
+import CoreData
 
 // MARK: - App Entry Point
 
@@ -8,6 +10,7 @@ struct WorkoutTrackerApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     @StateObject var authManager = AuthManagerImpl.shared
+    let persistenceController = PersistenceController.shared
     
     let repository: WorkoutRepository
     

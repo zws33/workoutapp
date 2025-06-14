@@ -7,6 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		367ED7F42DFB1F1000C79CFE /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 367ED7F32DFB1F1000C79CFE /* CoreData.framework */; };
+		367ED7F72DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */; };
+		367ED8102DFB259800C79CFE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 367ED7FA2DFB259800C79CFE /* Preview Assets.xcassets */; };
+		367ED8112DFB259800C79CFE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 367ED8022DFB259800C79CFE /* Assets.xcassets */; };
+		367ED8122DFB259800C79CFE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 367ED8052DFB259800C79CFE /* GoogleService-Info.plist */; };
+		367ED8182DFB259800C79CFE /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8032DFB259800C79CFE /* AuthManager.swift */; };
+		367ED8192DFB259800C79CFE /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8042DFB259800C79CFE /* Errors.swift */; };
+		367ED81A2DFB259800C79CFE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8072DFB259800C79CFE /* Models.swift */; };
+		367ED81C2DFB259800C79CFE /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8092DFB259800C79CFE /* SignInView.swift */; };
+		367ED81D2DFB259800C79CFE /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80A2DFB259800C79CFE /* Utilities.swift */; };
+		367ED81E2DFB259800C79CFE /* WorkoutAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80C2DFB259800C79CFE /* WorkoutAppDelegate.swift */; };
+		367ED81F2DFB259800C79CFE /* WorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */; };
+		367ED8202DFB259800C79CFE /* WorkoutTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */; };
 		369704DD2D5F909B0059511D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 369704DC2D5F909B0059511D /* GoogleSignIn */; };
 		36D2F0A92DEF165400461CB9 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0A82DEF165400461CB9 /* FirebaseAuth */; };
 		36D2F0AD2DEF1EA600461CB9 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0AC2DEF1EA600461CB9 /* FirebaseCore */; };
@@ -30,28 +43,40 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		367ED7F32DFB1F1000C79CFE /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		367ED7F62DFB1F4900C79CFE /* WorkoutModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = WorkoutModel.xcdatamodel; sourceTree = "<group>"; };
+		367ED7FA2DFB259800C79CFE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		367ED8022DFB259800C79CFE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		367ED8032DFB259800C79CFE /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		367ED8042DFB259800C79CFE /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
+		367ED8052DFB259800C79CFE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		367ED8062DFB259800C79CFE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		367ED8072DFB259800C79CFE /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		367ED8092DFB259800C79CFE /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		367ED80A2DFB259800C79CFE /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		367ED80B2DFB259800C79CFE /* workoutapp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = workoutapp.entitlements; sourceTree = "<group>"; };
+		367ED80C2DFB259800C79CFE /* WorkoutAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutAppDelegate.swift; sourceTree = "<group>"; };
+		367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
+		367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTrackerApp.swift; sourceTree = "<group>"; };
 		369704AC2D5F8DBE0059511D /* workoutapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = workoutapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704BC2D5F8DBF0059511D /* workoutappTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704C62D5F8DBF0059511D /* workoutappUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		369704E12D60CCBC0059511D /* Exceptions for "workoutapp" folder in "workoutapp" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 369704AB2D5F8DBE0059511D /* workoutapp */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		369704AE2D5F8DBE0059511D /* workoutapp */ = {
+		367ED8212DFB25B300C79CFE /* Persistence */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				369704E12D60CCBC0059511D /* Exceptions for "workoutapp" folder in "workoutapp" target */,
-			);
-			path = workoutapp;
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		367ED83A2DFC8E1D00C79CFE /* WorkoutView */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WorkoutView;
+			sourceTree = "<group>";
+		};
+		367ED83F2DFC8E3500C79CFE /* ScheduleSelector */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScheduleSelector;
 			sourceTree = "<group>";
 		};
 		369704BF2D5F8DBF0059511D /* workoutappTests */ = {
@@ -72,6 +97,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				369704DD2D5F909B0059511D /* GoogleSignIn in Frameworks */,
+				367ED7F42DFB1F1000C79CFE /* CoreData.framework in Frameworks */,
 				36D2F0AD2DEF1EA600461CB9 /* FirebaseCore in Frameworks */,
 				36D2F0A92DEF165400461CB9 /* FirebaseAuth in Frameworks */,
 			);
@@ -94,12 +120,53 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		367ED7F22DFB1F1000C79CFE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				367ED7F32DFB1F1000C79CFE /* CoreData.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		367ED7FB2DFB259800C79CFE /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				367ED7FA2DFB259800C79CFE /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		367ED80F2DFB259800C79CFE /* workoutapp */ = {
+			isa = PBXGroup;
+			children = (
+				367ED7FB2DFB259800C79CFE /* Preview Content */,
+				367ED83F2DFC8E3500C79CFE /* ScheduleSelector */,
+				367ED83A2DFC8E1D00C79CFE /* WorkoutView */,
+				367ED8022DFB259800C79CFE /* Assets.xcassets */,
+				367ED8032DFB259800C79CFE /* AuthManager.swift */,
+				367ED8042DFB259800C79CFE /* Errors.swift */,
+				367ED8052DFB259800C79CFE /* GoogleService-Info.plist */,
+				367ED8062DFB259800C79CFE /* Info.plist */,
+				367ED8072DFB259800C79CFE /* Models.swift */,
+				367ED8212DFB25B300C79CFE /* Persistence */,
+				367ED8092DFB259800C79CFE /* SignInView.swift */,
+				367ED80A2DFB259800C79CFE /* Utilities.swift */,
+				367ED80B2DFB259800C79CFE /* workoutapp.entitlements */,
+				367ED80C2DFB259800C79CFE /* WorkoutAppDelegate.swift */,
+				367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */,
+				367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */,
+			);
+			path = workoutapp;
+			sourceTree = "<group>";
+		};
 		369704A32D5F8DBE0059511D = {
 			isa = PBXGroup;
 			children = (
-				369704AE2D5F8DBE0059511D /* workoutapp */,
+				367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */,
+				367ED80F2DFB259800C79CFE /* workoutapp */,
 				369704BF2D5F8DBF0059511D /* workoutappTests */,
 				369704C92D5F8DBF0059511D /* workoutappUITests */,
+				367ED7F22DFB1F1000C79CFE /* Frameworks */,
 				369704AD2D5F8DBE0059511D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,7 +197,9 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				369704AE2D5F8DBE0059511D /* workoutapp */,
+				367ED8212DFB25B300C79CFE /* Persistence */,
+				367ED83A2DFC8E1D00C79CFE /* WorkoutView */,
+				367ED83F2DFC8E3500C79CFE /* ScheduleSelector */,
 			);
 			name = workoutapp;
 			packageProductDependencies = (
@@ -241,6 +310,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				367ED8102DFB259800C79CFE /* Preview Assets.xcassets in Resources */,
+				367ED8112DFB259800C79CFE /* Assets.xcassets in Resources */,
+				367ED8122DFB259800C79CFE /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +337,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				367ED8182DFB259800C79CFE /* AuthManager.swift in Sources */,
+				367ED8192DFB259800C79CFE /* Errors.swift in Sources */,
+				367ED81A2DFB259800C79CFE /* Models.swift in Sources */,
+				367ED81C2DFB259800C79CFE /* SignInView.swift in Sources */,
+				367ED81D2DFB259800C79CFE /* Utilities.swift in Sources */,
+				367ED81E2DFB259800C79CFE /* WorkoutAppDelegate.swift in Sources */,
+				367ED81F2DFB259800C79CFE /* WorkoutRepository.swift in Sources */,
+				367ED8202DFB259800C79CFE /* WorkoutTrackerApp.swift in Sources */,
+				367ED7F72DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -630,6 +711,19 @@
 			productName = FirebaseCore;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				367ED7F62DFB1F4900C79CFE /* WorkoutModel.xcdatamodel */,
+			);
+			currentVersion = 367ED7F62DFB1F4900C79CFE /* WorkoutModel.xcdatamodel */;
+			path = WorkoutModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 369704A42D5F8DBE0059511D /* Project object */;
 }

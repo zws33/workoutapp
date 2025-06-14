@@ -25,10 +25,10 @@ struct WorkoutView: View {
                 errorView(string)
             case .data(let workoutGroup):
                     VStack {
-                        dayPicker(days:  Array(workoutGroup.workouts.keys).sorted())
+                        dayPicker(days: workoutGroup.workouts.map(\.day))
                         if let selected = selectedDay,
-                           let workoutDayResponse = workoutGroup.workouts[selected] {
-                            ExerciseListView(exercises: workoutDayResponse.exercises)
+                           let workoutDay = workoutGroup.workouts.first(where: { $0.day == selected }) {
+                            ExerciseListView(exercises: workoutDay.exercises)
                         } else {
                             Text("Select a workout day")
                                 .foregroundColor(.secondary)
@@ -43,7 +43,7 @@ struct WorkoutView: View {
         .onChange(of: viewModel.state) {
             if case let .data(workoutGroup) = viewModel.state,
                selectedDay == nil {
-                selectedDay = Array(workoutGroup.workouts.keys).sorted().first
+                selectedDay = workoutGroup.workouts.sorted(by: { $0.day < $1.day }).first?.day
             }
         }
         .padding()

@@ -13,8 +13,7 @@ import FirebaseAuth
 protocol AuthManager {
     var authState: AuthState { get }
     func getIDToken() async throws -> String
-    func signInWithEmailAndPassword(email: String, password: String) async throws
-    func createUser(email: String, password: String) async throws
+    func signInWithGoogle() async throws
     func signOut() throws
 }
 
@@ -23,36 +22,65 @@ class AuthManagerImpl: ObservableObject, AuthManager {
     
     @Published var authState = AuthState.signedOut
     
-    func getIDToken() async throws -> String {
-        guard let user = Auth.auth().currentUser else {
-            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently signed in."])
-        }
-        return try await user.getIDToken(forcingRefresh: true)
-    }
+    private lazy var firebaseAuth = Auth.auth()
     
     init() {
-
     }
     
-    func signInWithEmailAndPassword(email: String, password: String) async throws {
-        do {
-            try await Auth.auth().signIn(withEmail: email, password: password)
-            await MainActor.run {
-                self.authState = .signedIn
-            }
-        } catch {
-            print(error)
+    func listenForAuthStateChanges() {
+        let _ = Auth.auth().addStateDidChangeListener { [weak self] auth, user in
+            self?.authState = user != nil ? .signedIn : .signedOut
         }
-
     }
     
-    func createUser(email: String, password: String) async throws {
-        try await Auth.auth().createUser(withEmail: email, password: password)
+    func signInWithGoogle() async throws {
+        guard let presentingViewController = await getRootViewController() else {
+            throw AuthError.noPresentingViewController
+        }
+         
+        guard let clientID = firebaseAuth.app?.options.clientID else {
+            throw AuthError.noClientID
+        }
+        
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presentingViewController)
+        
+        let user = result.user
+        guard let idToken = user.idToken?.tokenString else {
+            throw AuthError.noIDToken
+        }
+        
+        let accessToken = user.accessToken.tokenString
+        
+        let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
+        
+        let _ = try await firebaseAuth.signIn(with: credential)
+        
+        authState = .signedIn
+    }
+    
+    func getIDToken() async throws -> String {
+        guard let user = firebaseAuth.currentUser else {
+            throw AuthError.notAuthenticated
+        }
+        
+        return try await user.getIDToken()
+    }
+    
+    private func getRootViewController() async -> UIViewController? {
+        guard let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = await windowScene.windows.first else {
+            return nil
+        }
+         
+        return await window.rootViewController
     }
     
     func signOut() throws {
-        try Auth.auth().signOut()
-        self.authState = .signedOut
+        try firebaseAuth.signOut()
+        GIDSignIn.sharedInstance.signOut()
     }
 }
 

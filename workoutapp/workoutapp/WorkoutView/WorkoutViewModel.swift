@@ -24,8 +24,7 @@ class WorkoutViewModel: ObservableObject {
     func getWorkouts() async {
         state = .loading
         do {
-            let workouts = try await repository.fetchSchedule(for: selectedWeek)
-            print(workouts)
+            let workouts = try await repository.getSchedule(for: selectedWeek)
             state = .data(workouts)
         } catch {
             state = .error(error.localizedDescription)
