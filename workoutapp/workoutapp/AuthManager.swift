@@ -24,12 +24,25 @@ class AuthManagerImpl: ObservableObject, AuthManager {
     
     private lazy var firebaseAuth = Auth.auth()
     
+    // Store the listener handle so we can remove it later
+    private var authStateHandle: AuthStateDidChangeListenerHandle?
+    
     init() {
     }
     
     func listenForAuthStateChanges() {
-        let _ = Auth.auth().addStateDidChangeListener { [weak self] auth, user in
-            self?.authState = user != nil ? .signedIn : .signedOut
+        // Store the handle returned by Firebase
+        authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] auth, user in
+            DispatchQueue.main.async {
+                self?.authState = user != nil ? .signedIn : .signedOut
+            }
+        }
+    }
+
+    // Clean up when AuthManager is deallocated
+    deinit {
+        if let handle = authStateHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
         }
     }
     
@@ -55,10 +68,10 @@ class AuthManagerImpl: ObservableObject, AuthManager {
         let accessToken = user.accessToken.tokenString
         
         let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
-        
         let _ = try await firebaseAuth.signIn(with: credential)
-        
-        authState = .signedIn
+        await MainActor.run {
+            authState = .signedIn
+        }
     }
     
     func getIDToken() async throws -> String {

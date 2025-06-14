@@ -36,21 +36,33 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         isProd ? "https://zwsmith.me" : "http://localhost:3000"
     }
     
-    private func workoutsURL(for week: String) -> URL {
-        URL(string: "\(baseURL)/api/workouts/\(week)")!
+    private func workoutsURL(for week: String) throws -> URL {
+        guard let url = URL(string: "\(baseURL)/api/workouts/\(week)") else {
+            throw NetworkError.invalidURL("Failed to create URL for week: \(week)")
+        }
+        return url
     }
     
     func getSchedule(for week: String) async throws -> Schedule {
-        let fetchRequest: NSFetchRequest<ScheduleEntity> = ScheduleEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "name == %@", week)
-        fetchRequest.fetchLimit = 1
+        // Use background context for fetch operation
+        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
         
-        let result = try PersistenceController.shared.context.fetch(fetchRequest)
+        let localSchedule: Schedule? = try await backgroundContext.perform {
+            let fetchRequest: NSFetchRequest<ScheduleEntity> = ScheduleEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "name == %@", week)
+            fetchRequest.fetchLimit = 1
+            
+            let result = try backgroundContext.fetch(fetchRequest)
+            
+            if let scheduleEntity = result.first {
+                return try scheduleEntity.toSchedule()
+            }
+            return nil
+        }
         
-        if let scheduleEntity = result.first {
-            let localSchedule = try scheduleEntity.toSchedule()
+        if let schedule = localSchedule {
             print("returning local schedule")
-            return localSchedule
+            return schedule
         } else {
             let remoteSchedule = try await fetchSchedule(for: week)
             try await saveSchedule(remoteSchedule)
@@ -60,7 +72,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
     
     private func fetchSchedule(for week: String) async throws -> Schedule {
-        var request = URLRequest(url: workoutsURL(for: week))
+        var request = URLRequest(url: try workoutsURL(for: week))
         request.httpMethod = "GET"
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         
@@ -83,7 +95,9 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
     
     func fetchWeeks() async throws -> [String] {
-        let url = URL(string: "\(baseURL)/api/sheets")!
+        guard let url = URL(string: "\(baseURL)/api/sheets") else {
+            throw NetworkError.invalidURL("Failed to create URL for sheets endpoint")
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         
@@ -155,7 +169,7 @@ struct FakeWorkoutRepository: WorkoutRepository {
     }
     
     func getSchedule(for week: String) async throws -> Schedule {
-        Schedule(
+        return Schedule(
             name: "Week 1",
             workouts: [
                  Workout(
