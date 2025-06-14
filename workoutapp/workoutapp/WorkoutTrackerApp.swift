@@ -50,7 +50,7 @@ struct ContentView: View {
                                 try authManager.signOut()
                             } catch {
                                 // Handle error (log it, show alert, etc.)
-                                print("Sign-out failed:", error.localizedDescription)
+                                AppLogger.error("Sign-out failed", error: error, category: .auth)
                             }
                         }
                     }

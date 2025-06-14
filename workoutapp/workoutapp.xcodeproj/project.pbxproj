@@ -20,6 +20,7 @@
 		367ED81E2DFB259800C79CFE /* WorkoutAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80C2DFB259800C79CFE /* WorkoutAppDelegate.swift */; };
 		367ED81F2DFB259800C79CFE /* WorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */; };
 		367ED8202DFB259800C79CFE /* WorkoutTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */; };
+		367ED8C62DFE2A2A00C79CFE /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8C52DFE2A2A00C79CFE /* AppLogger.swift */; };
 		369704DD2D5F909B0059511D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 369704DC2D5F909B0059511D /* GoogleSignIn */; };
 		36D2F0A92DEF165400461CB9 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0A82DEF165400461CB9 /* FirebaseAuth */; };
 		36D2F0AD2DEF1EA600461CB9 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0AC2DEF1EA600461CB9 /* FirebaseCore */; };
@@ -58,6 +59,7 @@
 		367ED80C2DFB259800C79CFE /* WorkoutAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutAppDelegate.swift; sourceTree = "<group>"; };
 		367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
 		367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTrackerApp.swift; sourceTree = "<group>"; };
+		367ED8C52DFE2A2A00C79CFE /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		369704AC2D5F8DBE0059511D /* workoutapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = workoutapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704BC2D5F8DBF0059511D /* workoutappTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704C62D5F8DBF0059511D /* workoutappUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -139,6 +141,7 @@
 		367ED80F2DFB259800C79CFE /* workoutapp */ = {
 			isa = PBXGroup;
 			children = (
+				367ED8C52DFE2A2A00C79CFE /* AppLogger.swift */,
 				367ED7FB2DFB259800C79CFE /* Preview Content */,
 				367ED83F2DFC8E3500C79CFE /* ScheduleSelector */,
 				367ED83A2DFC8E1D00C79CFE /* WorkoutView */,
@@ -341,6 +344,7 @@
 				367ED8192DFB259800C79CFE /* Errors.swift in Sources */,
 				367ED81A2DFB259800C79CFE /* Models.swift in Sources */,
 				367ED81C2DFB259800C79CFE /* SignInView.swift in Sources */,
+				367ED8C62DFE2A2A00C79CFE /* AppLogger.swift in Sources */,
 				367ED81D2DFB259800C79CFE /* Utilities.swift in Sources */,
 				367ED81E2DFB259800C79CFE /* WorkoutAppDelegate.swift in Sources */,
 				367ED81F2DFB259800C79CFE /* WorkoutRepository.swift in Sources */,

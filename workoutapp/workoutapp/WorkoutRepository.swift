@@ -9,6 +9,7 @@ import Foundation
 import GoogleSignIn
 import CoreData
 import Combine
+import os.log
 
 
 protocol WorkoutRepository {
@@ -61,12 +62,12 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
         
         if let schedule = localSchedule {
-            print("returning local schedule")
+            AppLogger.info("Returning local schedule for week: \(week)", category: .coreData)
             return schedule
         } else {
             let remoteSchedule = try await fetchSchedule(for: week)
             try await saveSchedule(remoteSchedule)
-            print("returning remote schedule")
+            AppLogger.info("Returning remote schedule for week: \(week)", category: .networking)
             return remoteSchedule
         }
     }
@@ -89,7 +90,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             let decoder = JSONDecoder()
             return try decoder.decode(Schedule.self, from: data)
         } catch {
-            print("error decoding JSON:", error)
+            AppLogger.error("Failed to decode Schedule JSON for week: \(week)", error: error, category: .networking)
             throw NetworkError.decodingFailed(error)
         }
     }
@@ -108,7 +109,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            print("Network request failed:", error)
+            AppLogger.error("Network request failed for fetchWeeks", error: error, category: .networking)
             throw NetworkError.transportError(error)
         }
 

@@ -12,8 +12,8 @@ import GoogleSignIn
 func prettyPrintData(data: Data) {
     if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
        let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
-        print(String(decoding: jsonData, as: UTF8.self))
+        AppLogger.debug("JSON Response: \(String(decoding: jsonData, as: UTF8.self))", category: .networking)
     } else {
-        print("json data malformed")
+        AppLogger.warning("JSON data malformed", category: .networking)
     }
 }

@@ -46,6 +46,7 @@ class AuthManagerImpl: ObservableObject, AuthManager {
         }
     }
     
+    @MainActor
     func signInWithGoogle() async throws {
         guard let presentingViewController = await getRootViewController() else {
             throw AuthError.noPresentingViewController
@@ -69,9 +70,9 @@ class AuthManagerImpl: ObservableObject, AuthManager {
         
         let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: accessToken)
         let _ = try await firebaseAuth.signIn(with: credential)
-        await MainActor.run {
-            authState = .signedIn
-        }
+        
+        authState = .signedIn
+        
     }
     
     func getIDToken() async throws -> String {
