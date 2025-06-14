@@ -7,18 +7,26 @@
 
 import Foundation
 import GoogleSignIn
+import CoreData
+import Combine
+
 
 protocol WorkoutRepository {
-    func fetchSchedule(for week: String) async throws -> Schedule
+    func getSchedule(for week: String) async throws -> Schedule
     func fetchWeeks() async throws -> [String]
+
 }
 
 class WorkoutRepositoryImpl: WorkoutRepository {
     private let session: URLSession
     private let isProd: Bool
     private let authManager: AuthManager
+
     
-    init(session: URLSession = .shared, isProd: Bool = true, authManager: AuthManager) {
+    init(session: URLSession = .shared,
+         isProd: Bool = true,
+         authManager: AuthManager
+    ) {
         self.session = session
         self.isProd = isProd
         self.authManager = authManager
@@ -32,7 +40,26 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         URL(string: "\(baseURL)/api/workouts/\(week)")!
     }
     
-    func fetchSchedule(for week: String) async throws -> Schedule {
+    func getSchedule(for week: String) async throws -> Schedule {
+        let fetchRequest: NSFetchRequest<ScheduleEntity> = ScheduleEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", week)
+        fetchRequest.fetchLimit = 1
+        
+        let result = try PersistenceController.shared.context.fetch(fetchRequest)
+        
+        if let scheduleEntity = result.first {
+            let localSchedule = try scheduleEntity.toSchedule()
+            print("returning local schedule")
+            return localSchedule
+        } else {
+            let remoteSchedule = try await fetchSchedule(for: week)
+            try await saveSchedule(remoteSchedule)
+            print("returning remote schedule")
+            return remoteSchedule
+        }
+    }
+    
+    private func fetchSchedule(for week: String) async throws -> Schedule {
         var request = URLRequest(url: workoutsURL(for: week))
         request.httpMethod = "GET"
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
@@ -47,9 +74,10 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
         
         do {
-            return try createWorkoutGroup(from: data)
+            let decoder = JSONDecoder()
+            return try decoder.decode(Schedule.self, from: data)
         } catch {
-            print(error)
+            print("error decoding JSON:", error)
             throw NetworkError.decodingFailed(error)
         }
     }
@@ -82,11 +110,42 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             throw NetworkError.decodingFailed(error)
         }
     }
-}
+    
+    private func saveSchedule(_ schedule: Schedule) async throws {
+        // Create a new background context for this operation
+        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+        
+        try await backgroundContext.perform {
+            let scheduleEntity = ScheduleEntity(context: backgroundContext)
+            scheduleEntity.id = UUID().uuidString
+            scheduleEntity.name = schedule.name
 
-func createWorkoutGroup(from data: Data) throws -> Schedule {
-    let decoder = JSONDecoder()
-    return try decoder.decode(Schedule.self, from: data)
+            for workout in schedule.workouts {
+                let workoutEntity = WorkoutEntity(context: backgroundContext)
+                workoutEntity.id = UUID().uuidString
+                workoutEntity.day = workout.day
+                workoutEntity.schedule = scheduleEntity
+
+                for (groupKey, exercises) in workout.exercises {
+                    let groupEntity = ExerciseGroupEntity(context: backgroundContext)
+                    groupEntity.groupKey = groupKey
+                    groupEntity.workout = workoutEntity
+
+                    for exercise in exercises {
+                        let exerciseEntity = ExerciseEntity(context: backgroundContext)
+                        exerciseEntity.name = exercise.name
+                        exerciseEntity.sets = Int64(exercise.sets)
+                        exerciseEntity.reps = Int64(exercise.reps)
+                        exerciseEntity.weight = exercise.weight
+                        exerciseEntity.notes = exercise.notes
+                        exerciseEntity.exerciseGroup = groupEntity
+                    }
+                }
+            }
+            
+            try backgroundContext.save()
+        }
+    }
 }
 
 struct FakeWorkoutRepository: WorkoutRepository {
@@ -95,14 +154,20 @@ struct FakeWorkoutRepository: WorkoutRepository {
         return ["Week 1"]
     }
     
-    func fetchSchedule(for week: String) async throws -> Schedule {
+    func getSchedule(for week: String) async throws -> Schedule {
         Schedule(
             name: "Week 1",
             workouts: [
-                "1" : WorkoutDay(
+                 Workout(
                     day: "1",
                     exercises : [
-                        "primary" : [Exercise(name: "pushups", sets: 1, reps: 10, weight: "35", notes: "")]
+                        "primary" : [Exercise(
+                            name: "pushups",
+                            sets: 1,
+                            reps: 10,
+                            weight: "35",
+                            notes: ""
+                        )]
                     ]
                 )
             ]

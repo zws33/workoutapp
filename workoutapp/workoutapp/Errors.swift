@@ -41,3 +41,8 @@ enum AuthError: LocalizedError {
         }
     }
 }
+
+enum CoreDataError: Error {
+    case noDataFound
+    case invalidData(String)
+}
