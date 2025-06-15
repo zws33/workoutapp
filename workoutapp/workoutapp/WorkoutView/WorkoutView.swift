@@ -27,11 +27,11 @@ struct WorkoutView: View {
                     }
 
                 case .data(let group):
-                    WorkoutDayList(
+                    ExerciseList(
                         workouts: group.workouts,
                         selectedDay: $selectedDay
                     )
-                    .navigationTitle(group.name) // e.g. “Week 1”
+                    .navigationTitle(group.name) 
                 }
             }
             .task { await viewModel.getWorkouts() }
@@ -64,7 +64,7 @@ struct WorkoutView: View {
     }
 }
 
-struct WorkoutDayList: View {
+struct ExerciseList: View {
     let workouts: [Workout]
     @Binding var selectedDay: String?
 
