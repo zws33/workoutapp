@@ -38,11 +38,14 @@ struct WorkoutView: View {
             .animation(.default, value: viewModel.state)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu(selectedDay ?? "Day") {
+                    Menu(selectedDay != nil ? "Day \(selectedDay!)" : "Select Day") {
                         ForEach(groupedDays, id: \.self) { day in
-                            Button(day) { selectedDay = day }
+                            Button("Day \(day)") { selectedDay = day }
                         }
                     }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
             }
             .onChange(of: viewModel.state) { oldState, newState in
