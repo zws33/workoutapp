@@ -7,6 +7,12 @@
 
 import Foundation
 
+struct SchedulesResponse: Codable {
+    let success: Bool
+    let data: [Schedule]
+    let count: Int
+}
+
 struct Schedule: Codable, Equatable {
     let id: String
     let name: String

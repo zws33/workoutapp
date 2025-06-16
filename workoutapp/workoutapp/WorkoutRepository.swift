@@ -14,7 +14,7 @@ import os.log
 
 protocol WorkoutRepository {
     func getSchedule(for week: String) async throws -> Schedule
-    func fetchWeeks() async throws -> [String]
+    func fetchSchedules() async throws -> [Schedule]
 }
 
 class WorkoutRepositoryImpl: WorkoutRepository {
@@ -24,7 +24,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 
     
     init(session: URLSession = .shared,
-         isProd: Bool = true,
+         isProd: Bool = false,
          authManager: AuthManager
     ) {
         self.session = session
@@ -69,7 +69,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             do {
                 try await saveSchedule(remoteSchedule)
             } catch {
-                AppLogger.error(error.localizedDescription, category: .coreData)
+                AppLogger.error("Failed to save schedule", error: error, category: .coreData)
                 throw error
             }
             
@@ -96,13 +96,13 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             let decoder = JSONDecoder()
             return try decoder.decode(Schedule.self, from: data)
         } catch {
-            AppLogger.error("Failed to decode Schedule JSON for week: \(week)", error: error, category: .networking)
+            AppLogger.error("Failed to decode data", error: error, category: .networking)
             throw NetworkError.decodingFailed(error)
         }
     }
     
-    func fetchWeeks() async throws -> [String] {
-        guard let url = URL(string: "\(baseURL)/api/sheets") else {
+    func fetchSchedules() async throws -> [Schedule] {
+        guard let url = URL(string: "\(baseURL)/api/schedules") else {
             throw NetworkError.invalidURL("Failed to create URL for sheets endpoint")
         }
         var request = URLRequest(url: url)
@@ -115,7 +115,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
-            AppLogger.error("Network request failed for fetchWeeks", error: error, category: .networking)
+            AppLogger.error("Network request failed", error: error, category: .networking)
             throw NetworkError.transportError(error)
         }
 
@@ -125,9 +125,10 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
 
         do {
-            let weeks = try JSONDecoder().decode([String].self, from: data)
-            return weeks
+            let response = try JSONDecoder().decode(SchedulesResponse.self, from: data)
+            return response.data
         } catch {
+            AppLogger.error("Error decoding response data", error: error, category: .networking)
             throw NetworkError.decodingFailed(error)
         }
     }
@@ -172,11 +173,15 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 
 struct FakeWorkoutRepository: WorkoutRepository {
     
-    func fetchWeeks() async throws -> [String] {
-        return ["Week 1", "Week 2", "Week 3"]
+    func fetchSchedules() async throws -> [Schedule] {
+        return [createFakeSchedule(for: "Week 1")]
     }
     
     func getSchedule(for week: String) async throws -> Schedule {
+        return createFakeSchedule(for: week)
+    }
+    
+    func createFakeSchedule(for week: String) -> Schedule{
         return Schedule(
             name: week,
             workouts: [

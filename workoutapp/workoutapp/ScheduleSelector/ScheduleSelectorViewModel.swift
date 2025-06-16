@@ -20,11 +20,11 @@ final class ScheduleSelectorViewModel: ObservableObject {
     func loadWeeks() async {
         state = .loading
         do {
-            let weeks = try await repository.fetchWeeks()
-            AppLogger.info("Loaded \(weeks.count) workout weeks", category: .general)
-            state = .data(weeks: weeks)
+            let schedules = try await repository.fetchSchedules()
+            AppLogger.info("Loaded \(schedules.count) schedules", category: .general)
+            state = .data(weeks: schedules.map(\.name))
         } catch {
-            AppLogger.error("Failed to load workout weeks", error: error, category: .networking)
+            AppLogger.error("Failed to load schedules", error: error, category: .networking)
             state = .error(error.localizedDescription)
         }
     }

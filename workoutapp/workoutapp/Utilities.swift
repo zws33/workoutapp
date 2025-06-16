@@ -9,11 +9,11 @@
 import SwiftUI
 import GoogleSignIn
 
-func prettyPrintData(data: Data) {
+func prettyPrintData(data: Data) -> String {
     if let json = try? JSONSerialization.jsonObject(with: data, options: .mutableContainers),
        let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
-        AppLogger.debug("JSON Response: \(String(decoding: jsonData, as: UTF8.self))", category: .networking)
+        return "JSON Response: \(String(decoding: jsonData, as: UTF8.self))"
     } else {
-        AppLogger.warning("JSON data malformed", category: .networking)
+        return "JSON data malformed"
     }
 }
