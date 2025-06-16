@@ -19,14 +19,21 @@ export const getWorkoutDb = (): WorkoutDb => {
         .get();
 
       if (!snapshot.exists) {
-        throw new Error(`Workout document for ${name} does not exist.`);
+        return undefined;
       }
       return snapshot.data() as Schedule;
+    },
+    getSchedules: async () => {
+      const snapshots = await firestoreDb
+        .collection(WORKOUTS_COLLECTION)
+        .get();
+      return snapshots.docs.map((doc) => doc.data() as Schedule);
     }
   }
 };
 
 export interface WorkoutDb {
   saveSchedule(schedule: Schedule): Promise<void>;
-  getScheduleByName(name: string): Promise<Schedule | null>;
+  getScheduleByName(name: string): Promise<Schedule | undefined>;
+  getSchedules(): Promise<Schedule[]>;
 }

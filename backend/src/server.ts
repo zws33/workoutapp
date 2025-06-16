@@ -4,6 +4,7 @@ import { GoogleSheetsService } from './googleSheetsService.js';
 import { authenticateUser } from './authenticate.js'
 import { getWorkoutDb } from './workoutDb.js'
 import { WorkoutRepository } from './workoutRepository.js'
+import {getErrorMessage} from "./utils.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,10 +46,28 @@ app.get('/api/sheets/:sheetName', authenticateUser, async (req, res) => {
   }
 });
 
+app.get('/api/schedules', authenticateUser, async (req, res) => {
+  try {
+    const schedules = await repository.getSchedules();
+    res.json({
+      success: true,
+      data: schedules,
+      count: schedules.length
+    });
+  } catch (e) {
+    console.error('Error getting workouts:', e);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch workouts',
+      message: getErrorMessage(e)
+    });
+  }
+})
+
 app.get('/api/workouts/:week', authenticateUser, async (req, res) => {
   const { week } = req.params;
   try {
-    const data = await repository.getWorkoutData(week);
+    const data = await repository.getScheduleByName(week);
     res.json(data);
   } catch (error) {
     console.error(`Error getting data for ${week}:`, error);

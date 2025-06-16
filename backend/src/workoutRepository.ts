@@ -1,13 +1,5 @@
 import {GoogleSheetsService} from './googleSheetsService.js';
-import {
-  addExercise,
-  createWorkout,
-  createExercise,
-  createSchedule,
-  Group,
-  Workout,
-  Schedule,
-} from './models.js';
+import {addExercise, createExercise, createSchedule, createWorkout, Group, Schedule, Workout,} from './models.js';
 import cron from 'node-cron';
 import {WorkoutDb} from './workoutDb.js';
 
@@ -46,12 +38,21 @@ export class WorkoutRepository {
     }
   }
 
-  async getWorkoutData(sheetName: string): Promise<Schedule> {
+  async getScheduleByName(sheetName: string): Promise<Schedule> {
+    if (!sheetName?.trim()) {
+      throw new Error('Sheet name is required');
+    }
+
     const schedule = await this.db.getScheduleByName(sheetName);
-    if(!schedule) {
+    if (!schedule) {
       throw new Error(`Workout document for ${sheetName} does not exist.`);
     }
+
     return schedule;
+  }
+
+  async getSchedules(): Promise<Schedule[]> {
+    return await this.db.getSchedules();
   }
 }
 
