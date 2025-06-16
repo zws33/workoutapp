@@ -2,6 +2,8 @@ import {GoogleSheetsService} from './googleSheetsService.js';
 import {
   addExercise,
   createWorkout,
+  createExercise,
+  createSchedule,
   Group,
   Workout,
   Schedule,
@@ -34,7 +36,7 @@ export class WorkoutRepository {
       await Promise.all(
         sheets.map(async (sheetName: string) => {
           const data = await this.googleSheetsService.getSheetData(sheetName);
-          const schedule = createSchedule(sheetName, data);
+          const schedule = createScheduleFromRows(sheetName, data);
           await this.db.saveSchedule(schedule);
         })
       );
@@ -53,11 +55,11 @@ export class WorkoutRepository {
   }
 }
 
-export function createSchedule(name: string, rows: string[][]) {
+export function createScheduleFromRows(name: string, rows: string[][]) {
   const workouts: Workout[] = [];
 
   rows.slice(1).forEach((row) => {
-    const [day, group, name, sets, reps, weight, notes] = row;
+    const [day, group, exerciseName, sets, reps, weight, notes] = row;
 
     let workout = workouts.find((w) => w.day === day);
 
@@ -66,19 +68,16 @@ export function createSchedule(name: string, rows: string[][]) {
       workouts.push(workout);
     }
 
-    const exercise = {
-      name,
-      sets: parseInt(sets) || 0,
-      reps: parseInt(reps) || 0,
-      weight: weight || '-',
-      notes: notes ?? '',
-    }
+    const exercise = createExercise(
+      exerciseName,
+      parseInt(sets) || 0,
+      parseInt(reps) || 0,
+      weight || '-',
+      notes ?? ''
+    );
 
     addExercise(workout, group as Group, exercise);
   });
 
-  return {
-    name,
-    workouts,
-  };
+  return createSchedule(name, workouts);
 }
