@@ -40,7 +40,7 @@ struct ScheduleSelectorView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .task { await viewModel.loadWeeks() }
+        .task { await viewModel.loadSchedules() }
         .animation(.default, value: viewModel.state)
     }
 }

@@ -17,11 +17,10 @@ final class ScheduleSelectorViewModel: ObservableObject {
         self.repository = repository
     }
 
-    func loadWeeks() async {
+    func loadSchedules() async {
         state = .loading
         do {
-            let schedules = try await repository.fetchSchedules()
-            AppLogger.info("Loaded \(schedules.count) schedules", category: .general)
+            let schedules = try await repository.getSchedules()
             state = .data(weeks: schedules.map(\.name))
         } catch {
             AppLogger.error("Failed to load schedules", error: error, category: .networking)
@@ -31,7 +30,7 @@ final class ScheduleSelectorViewModel: ObservableObject {
 
     func retry() async {
         AppLogger.info("Retrying to load workout weeks", category: .general)
-        await loadWeeks()
+        await loadSchedules()
     }
 }
 

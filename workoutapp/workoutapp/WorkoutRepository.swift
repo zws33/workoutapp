@@ -14,7 +14,7 @@ import os.log
 
 protocol WorkoutRepository {
     func getSchedule(for week: String) async throws -> Schedule
-    func fetchSchedules() async throws -> [Schedule]
+    func getSchedules() async throws -> [Schedule]
 }
 
 class WorkoutRepositoryImpl: WorkoutRepository {
@@ -101,6 +101,57 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
     }
     
+    func getSchedules() async throws -> [Schedule] {
+        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+
+        return try await backgroundContext.perform {
+                  let fetchRequest = ScheduleEntity.fetchRequest()
+
+                  do {
+                      let results = try backgroundContext.fetch(fetchRequest)
+
+                      // Handle empty results case
+                      guard !results.isEmpty else {
+                          AppLogger.info("No schedules found in Core Data", category: .coreData)
+                          return []
+                      }
+
+                      var schedules: [Schedule] = []
+
+                      for scheduleEntity in results {
+                          do {
+                              let schedule = try scheduleEntity.toSchedule()
+                              schedules.append(schedule)
+                          } catch {
+                              AppLogger.error("Failed to convert ScheduleEntity to Schedule", error: error, category: .coreData)
+                              throw error
+                          }
+                      }
+
+                      AppLogger.info("Successfully loaded \(schedules.count) schedules from Core Data", category: .coreData)
+                      return schedules
+
+                  } catch {
+                      AppLogger.error("Core Data fetch failed for schedules", error: error, category: .coreData)
+                      throw error
+                  }
+              }
+    }
+    
+    func syncSchedules() async throws {
+        let schedules = try await fetchSchedules()
+        var synced = 0
+        for schedule in schedules {
+            do {
+                try await saveSchedule(schedule)
+                synced += 1
+            } catch {
+                AppLogger.error("Failed to save schedule: \(schedule.id)", error: error, category: .coreData)
+            }
+        }
+        AppLogger.info("\(synced)/\(schedules.count) schedules saved")
+    }
+    
     func fetchSchedules() async throws -> [Schedule] {
         guard let url = URL(string: "\(baseURL)/api/schedules") else {
             throw NetworkError.invalidURL("Failed to create URL for sheets endpoint")
@@ -173,7 +224,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 
 struct FakeWorkoutRepository: WorkoutRepository {
     
-    func fetchSchedules() async throws -> [Schedule] {
+    func getSchedules() async throws -> [Schedule] {
         return [createFakeSchedule(for: "Week 1")]
     }
     
