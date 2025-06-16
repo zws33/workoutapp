@@ -21,10 +21,10 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     private let session: URLSession
     private let isProd: Bool
     private let authManager: AuthManager
-
+    private let refreshInterval: TimeInterval = 259_200
     
     init(session: URLSession = .shared,
-         isProd: Bool = false,
+         isProd: Bool = true,
          authManager: AuthManager
     ) {
         self.session = session
@@ -73,7 +73,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                 throw error
             }
             
-            AppLogger.info("Returning remote schedule for week: \(week)", category: .networking)
+            AppLogger.info("Returning remote schedule for: \(week)", category: .networking)
             return remoteSchedule
         }
     }
@@ -102,44 +102,69 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
     
     func getSchedules() async throws -> [Schedule] {
+        
+        if shouldRefreshData() {
+            do {
+                AppLogger.info("Local data is stale. Syncing schedules...", category: .general)
+                try await syncSchedules()
+            } catch {
+                AppLogger.error("Failed to sync schedules", error: error, category: .general)
+            }
+            
+        }
+        
         let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
 
         return try await backgroundContext.perform {
-                  let fetchRequest = ScheduleEntity.fetchRequest()
+            let fetchRequest = ScheduleEntity.fetchRequest()
 
-                  do {
-                      let results = try backgroundContext.fetch(fetchRequest)
+            do {
+                let results = try backgroundContext.fetch(fetchRequest)
 
-                      // Handle empty results case
-                      guard !results.isEmpty else {
-                          AppLogger.info("No schedules found in Core Data", category: .coreData)
-                          return []
-                      }
+                // Handle empty results case
+                guard !results.isEmpty else {
+                    AppLogger.info("No schedules found in Core Data",category: .coreData)
+                    return []
+                }
 
-                      var schedules: [Schedule] = []
+                var schedules: [Schedule] = []
 
-                      for scheduleEntity in results {
-                          do {
-                              let schedule = try scheduleEntity.toSchedule()
-                              schedules.append(schedule)
-                          } catch {
-                              AppLogger.error("Failed to convert ScheduleEntity to Schedule", error: error, category: .coreData)
-                              throw error
-                          }
-                      }
+                for scheduleEntity in results {
+                    do {
+                        let schedule = try scheduleEntity.toSchedule()
+                        schedules.append(schedule)
+                    } catch {
+                        AppLogger.error("Failed to convert ScheduleEntity to Schedule",error: error,category: .coreData)
+                        throw error
+                    }
+                }
 
-                      AppLogger.info("Successfully loaded \(schedules.count) schedules from Core Data", category: .coreData)
-                      return schedules
+                AppLogger.info("Successfully loaded \(schedules.count) schedules from Core Data",category: .coreData)
+                return schedules
 
-                  } catch {
-                      AppLogger.error("Core Data fetch failed for schedules", error: error, category: .coreData)
-                      throw error
-                  }
-              }
+            } catch {
+                AppLogger.error("Core Data fetch failed for schedules",error: error,category: .coreData)
+                throw error
+            }
+        }
+    }
+    
+    func setRefreshTimestamp() {
+        UserDefaults.standard.set(Date(), forKey: "lastDataRefresh")
+    }
+    
+    func shouldRefreshData() -> Bool {
+        let lastRefresh = UserDefaults.standard.object(forKey: "lastDataRefresh") as? Date
+        AppLogger.info("Last data refresh at: \(String(describing: lastRefresh?.description))")
+        return lastRefresh.map { Date().timeIntervalSince($0) > refreshInterval } ?? true
     }
     
     func syncSchedules() async throws {
         let schedules = try await fetchSchedules()
+        
+        // Clear all existing schedule data first
+        try await clearAllSchedules()
+        
         var synced = 0
         for schedule in schedules {
             do {
@@ -149,7 +174,29 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                 AppLogger.error("Failed to save schedule: \(schedule.id)", error: error, category: .coreData)
             }
         }
+        setRefreshTimestamp()
         AppLogger.info("\(synced)/\(schedules.count) schedules saved")
+    }
+    
+    private func clearAllSchedules() async throws {
+        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
+        
+        try await backgroundContext.perform {
+            let fetchRequest = ScheduleEntity.fetchRequest()
+            
+            do {
+                let schedules = try backgroundContext.fetch(fetchRequest)
+                for schedule in schedules {
+                    backgroundContext.delete(schedule)
+                }
+                
+                try backgroundContext.save()
+                AppLogger.info("Cleared \(schedules.count) existing schedules from Core Data", category: .coreData)
+            } catch {
+                AppLogger.error("Failed to clear existing schedules", error: error, category: .coreData)
+                throw error
+            }
+        }
     }
     
     func fetchSchedules() async throws -> [Schedule] {
@@ -240,11 +287,29 @@ struct FakeWorkoutRepository: WorkoutRepository {
                     day: "Monday",
                     exercises: [
                         "Primary": [
-                            Exercise(name: "Push-ups", sets: 3, reps: 15, weight: "Bodyweight", notes: "Keep elbows close to body"),
-                            Exercise(name: "Bench Press", sets: 4, reps: 8, weight: "135 lbs", notes: "")
+                            Exercise(
+                                name: "Push-ups",
+                                sets: 3,
+                                reps: 15,
+                                weight: "Bodyweight",
+                                notes: "Keep elbows close to body"
+                            ),
+                            Exercise(
+                                name: "Bench Press",
+                                sets: 4,
+                                reps: 8,
+                                weight: "135 lbs",
+                                notes: ""
+                            )
                         ],
                         "Secondary": [
-                            Exercise(name: "Incline Dumbbell Press", sets: 3, reps: 12, weight: "40 lbs", notes: "Slow controlled movement")
+                            Exercise(
+                                name: "Incline Dumbbell Press",
+                                sets: 3,
+                                reps: 12,
+                                weight: "40 lbs",
+                                notes: "Slow controlled movement"
+                            )
                         ]
                     ]
                 ),
@@ -252,11 +317,29 @@ struct FakeWorkoutRepository: WorkoutRepository {
                     day: "Tuesday",
                     exercises: [
                         "Cardio": [
-                            Exercise(name: "Treadmill Run", sets: 1, reps: 0, weight: "", notes: "20 minutes at moderate pace")
+                            Exercise(
+                                name: "Treadmill Run",
+                                sets: 1,
+                                reps: 0,
+                                weight: "",
+                                notes: "20 minutes at moderate pace"
+                            )
                         ],
                         "Core": [
-                            Exercise(name: "Plank", sets: 3, reps: 0, weight: "", notes: "Hold for 60 seconds"),
-                            Exercise(name: "Russian Twists", sets: 3, reps: 20, weight: "15 lbs", notes: "")
+                            Exercise(
+                                name: "Plank",
+                                sets: 3,
+                                reps: 0,
+                                weight: "",
+                                notes: "Hold for 60 seconds"
+                            ),
+                            Exercise(
+                                name: "Russian Twists",
+                                sets: 3,
+                                reps: 20,
+                                weight: "15 lbs",
+                                notes: ""
+                            )
                         ]
                     ]
                 ),
@@ -264,8 +347,20 @@ struct FakeWorkoutRepository: WorkoutRepository {
                     day: "Wednesday",
                     exercises: [
                         "Primary": [
-                            Exercise(name: "Squats", sets: 4, reps: 12, weight: "185 lbs", notes: "Focus on form"),
-                            Exercise(name: "Deadlifts", sets: 3, reps: 8, weight: "225 lbs", notes: "Keep back straight")
+                            Exercise(
+                                name: "Squats",
+                                sets: 4,
+                                reps: 12,
+                                weight: "185 lbs",
+                                notes: "Focus on form"
+                            ),
+                            Exercise(
+                                name: "Deadlifts",
+                                sets: 3,
+                                reps: 8,
+                                weight: "225 lbs",
+                                notes: "Keep back straight"
+                            )
                         ]
                     ]
                 )
