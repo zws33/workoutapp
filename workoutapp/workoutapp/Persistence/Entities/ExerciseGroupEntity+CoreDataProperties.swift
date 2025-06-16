@@ -42,23 +42,3 @@ extension ExerciseGroupEntity {
 extension ExerciseGroupEntity : Identifiable {
 
 }
-
-extension ExerciseGroupEntity {
-    func toExerciseGroup() throws -> (String, [Exercise]) {
-        guard let groupKey = self.groupKey else {
-            throw CoreDataError.invalidData("Exercise group key is missing")
-        }
-        
-        var exerciseList: [Exercise] = []
-        
-        // Convert ExerciseEntity to Exercise
-        if let exerciseEntities = self.exercises?.allObjects as? [ExerciseEntity] {
-            for exerciseEntity in exerciseEntities {
-                let exercise = exerciseEntity.toExercise()
-                exerciseList.append(exercise)
-            }
-        }
-        
-        return (groupKey, exerciseList)
-    }
-}

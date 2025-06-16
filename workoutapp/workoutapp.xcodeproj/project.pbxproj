@@ -21,6 +21,7 @@
 		367ED81F2DFB259800C79CFE /* WorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */; };
 		367ED8202DFB259800C79CFE /* WorkoutTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */; };
 		367ED8C62DFE2A2A00C79CFE /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8C52DFE2A2A00C79CFE /* AppLogger.swift */; };
+		367ED8DB2DFFB7C900C79CFE /* Model.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 367ED8DA2DFFB7C900C79CFE /* Model.xcmappingmodel */; };
 		369704DD2D5F909B0059511D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 369704DC2D5F909B0059511D /* GoogleSignIn */; };
 		36D2F0A92DEF165400461CB9 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0A82DEF165400461CB9 /* FirebaseAuth */; };
 		36D2F0AD2DEF1EA600461CB9 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0AC2DEF1EA600461CB9 /* FirebaseCore */; };
@@ -60,6 +61,8 @@
 		367ED80D2DFB259800C79CFE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
 		367ED80E2DFB259800C79CFE /* WorkoutTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTrackerApp.swift; sourceTree = "<group>"; };
 		367ED8C52DFE2A2A00C79CFE /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
+		367ED8D92DFFB38A00C79CFE /* WorkoutModel 2.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "WorkoutModel 2.xcdatamodel"; sourceTree = "<group>"; };
+		367ED8DA2DFFB7C900C79CFE /* Model.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = Model.xcmappingmodel; sourceTree = "<group>"; };
 		369704AC2D5F8DBE0059511D /* workoutapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = workoutapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704BC2D5F8DBF0059511D /* workoutappTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704C62D5F8DBF0059511D /* workoutappUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -166,6 +169,7 @@
 			isa = PBXGroup;
 			children = (
 				367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */,
+				367ED8DA2DFFB7C900C79CFE /* Model.xcmappingmodel */,
 				367ED80F2DFB259800C79CFE /* workoutapp */,
 				369704BF2D5F8DBF0059511D /* workoutappTests */,
 				369704C92D5F8DBF0059511D /* workoutappUITests */,
@@ -340,6 +344,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				367ED8DB2DFFB7C900C79CFE /* Model.xcmappingmodel in Sources */,
 				367ED8182DFB259800C79CFE /* AuthManager.swift in Sources */,
 				367ED8192DFB259800C79CFE /* Errors.swift in Sources */,
 				367ED81A2DFB259800C79CFE /* Models.swift in Sources */,
@@ -720,9 +725,10 @@
 		367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				367ED8D92DFFB38A00C79CFE /* WorkoutModel 2.xcdatamodel */,
 				367ED7F62DFB1F4900C79CFE /* WorkoutModel.xcdatamodel */,
 			);
-			currentVersion = 367ED7F62DFB1F4900C79CFE /* WorkoutModel.xcdatamodel */;
+			currentVersion = 367ED8D92DFFB38A00C79CFE /* WorkoutModel 2.xcdatamodel */;
 			path = WorkoutModel.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

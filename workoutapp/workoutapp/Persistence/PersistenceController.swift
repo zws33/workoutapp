@@ -22,7 +22,7 @@ struct PersistenceController {
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "WorkoutModel")
-
+        container.persistentStoreDescriptions.first?.shouldMigrateStoreAutomatically = true
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }

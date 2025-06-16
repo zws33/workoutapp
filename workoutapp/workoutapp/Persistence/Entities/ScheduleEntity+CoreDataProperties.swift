@@ -2,7 +2,7 @@
 //  ScheduleEntity+CoreDataProperties.swift
 //  workoutapp
 //
-//  Created by Zach Smith on 6/13/25.
+//  Created by Zach Smith on 6/15/25.
 //
 //
 
@@ -16,8 +16,8 @@ extension ScheduleEntity {
         return NSFetchRequest<ScheduleEntity>(entityName: "ScheduleEntity")
     }
 
+    @NSManaged public var identifier: String?
     @NSManaged public var name: String?
-    @NSManaged public var id: String?
     @NSManaged public var workouts: NSSet?
 
 }
@@ -42,25 +42,3 @@ extension ScheduleEntity {
 extension ScheduleEntity : Identifiable {
 
 }
-
-extension ScheduleEntity {
-    func toSchedule() throws -> Schedule {
-        guard let name = self.name else {
-            throw CoreDataError.invalidData("Schedule name is missing")
-        }
-        
-        var workouts: [Workout] = []
-        
-        // Convert WorkoutEntity to Workout
-        if let workoutEntities = self.workouts?.allObjects as? [WorkoutEntity] {
-            for workoutEntity in workoutEntities.sorted(by:{ $0.day! < $1.day! }) {
-                let workout = try workoutEntity.toWorkout()
-                workouts.append(workout)
-            }
-        }
-        
-        return Schedule(name: name, workouts: workouts)
-    }
-}
-
-

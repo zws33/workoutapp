@@ -63,8 +63,16 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             AppLogger.info("Returning local schedule for week: \(week)", category: .coreData)
             return schedule
         } else {
+            AppLogger.info("Fetching schedule from remote")
             let remoteSchedule = try await fetchSchedule(for: week)
-            try await saveSchedule(remoteSchedule)
+            AppLogger.info("Saving schedule to local")
+            do {
+                try await saveSchedule(remoteSchedule)
+            } catch {
+                AppLogger.error(error.localizedDescription, category: .coreData)
+                throw error
+            }
+            
             AppLogger.info("Returning remote schedule for week: \(week)", category: .networking)
             return remoteSchedule
         }
@@ -130,12 +138,12 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         
         try await backgroundContext.perform {
             let scheduleEntity = ScheduleEntity(context: backgroundContext)
-            scheduleEntity.id = UUID().uuidString
+            scheduleEntity.identifier = schedule.id
             scheduleEntity.name = schedule.name
 
             for workout in schedule.workouts {
                 let workoutEntity = WorkoutEntity(context: backgroundContext)
-                workoutEntity.id = UUID().uuidString
+                workoutEntity.identifier = workout.id
                 workoutEntity.day = workout.day
                 workoutEntity.schedule = scheduleEntity
 
@@ -146,6 +154,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 
                     for exercise in exercises {
                         let exerciseEntity = ExerciseEntity(context: backgroundContext)
+                        exerciseEntity.identifier = exercise.id
                         exerciseEntity.name = exercise.name
                         exerciseEntity.sets = Int64(exercise.sets)
                         exerciseEntity.reps = Int64(exercise.reps)

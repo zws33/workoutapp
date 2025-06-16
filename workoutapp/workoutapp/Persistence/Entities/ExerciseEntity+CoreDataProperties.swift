@@ -16,6 +16,7 @@ extension ExerciseEntity {
         return NSFetchRequest<ExerciseEntity>(entityName: "ExerciseEntity")
     }
 
+    @NSManaged public var identifier: String?
     @NSManaged public var name: String?
     @NSManaged public var sets: Int64
     @NSManaged public var reps: Int64
@@ -27,16 +28,4 @@ extension ExerciseEntity {
 
 extension ExerciseEntity : Identifiable {
 
-}
-
-extension ExerciseEntity {
-    func toExercise() -> Exercise {
-        return Exercise(
-            name: self.name ?? "",
-            sets: Int(self.sets),
-            reps: Int(self.reps),
-            weight: self.weight ?? "",
-            notes: self.notes ?? ""
-        )
-    }
 }
