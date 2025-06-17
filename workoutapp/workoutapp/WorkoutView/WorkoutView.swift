@@ -102,10 +102,10 @@ struct ExerciseRow: View {
     @State private var open = false
 
     var body: some View {
-        if !exercise.notes.isEmpty {
+        if let notes = exercise.notes {
             // Show DisclosureGroup with chevron when there are notes
             DisclosureGroup(isExpanded: $open) {
-                Text(exercise.notes)
+                Text(notes)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .padding(.vertical, 4)
@@ -133,29 +133,18 @@ struct ExerciseRowContent: View {
             Text(metaLine)
                 .font(.body)
                 .foregroundColor(.secondary)
-                .accessibilityLabel(metaVoiceOver)
         }
         .padding(.vertical, 6)   // Bigger tap target
     }
 
     private var metaLine: String {
         [
-            "\(exercise.sets) sets",
-            exercise.reps > 0 ? "\(exercise.reps) reps" : nil,
-            !exercise.weight.isEmpty ? exercise.weight : nil
+            "sets: \(exercise.sets)",
+            exercise.reps.map { "reps: \($0) " },
+            exercise.weight.map{ "weight: \($0) "}
         ]
             .compactMap { $0 }
             .joined(separator: " · ")
-    }
-
-    private var metaVoiceOver: String {
-        [
-            "\(exercise.sets) sets",
-            exercise.reps > 0 ? "\(exercise.reps) reps" : nil,
-            !exercise.weight.isEmpty ? "\(exercise.weight) weight" : nil
-        ]
-            .compactMap { $0 }
-            .joined(separator: ", ")
     }
 }
 

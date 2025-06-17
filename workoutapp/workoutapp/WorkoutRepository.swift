@@ -256,7 +256,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                         exerciseEntity.identifier = exercise.id
                         exerciseEntity.name = exercise.name
                         exerciseEntity.sets = Int64(exercise.sets)
-                        exerciseEntity.reps = Int64(exercise.reps)
+                        exerciseEntity.reps = Int64(exercise.reps ?? -1)
                         exerciseEntity.weight = exercise.weight
                         exerciseEntity.notes = exercise.notes
                         exerciseEntity.exerciseGroup = groupEntity

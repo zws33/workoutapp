@@ -22,9 +22,14 @@ struct PersistenceController {
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "WorkoutModel")
-        container.persistentStoreDescriptions.first?.shouldMigrateStoreAutomatically = true
-        if inMemory {
-            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        
+        if let storeDescription = container.persistentStoreDescriptions.first {
+            storeDescription.shouldMigrateStoreAutomatically = true
+            storeDescription.shouldInferMappingModelAutomatically = true
+            
+            if inMemory {
+                storeDescription.url = URL(fileURLWithPath: "/dev/null")
+            }
         }
 
         container.loadPersistentStores { storeDescription, error in

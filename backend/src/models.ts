@@ -5,9 +5,9 @@ export interface Exercise {
   id: string;
   name: string;
   sets: number;
-  reps: number;
-  weight: string;
-  notes: string;
+  reps?: number;
+  weight?: string;
+  notes?: string;
 }
 
 export interface Workout {
@@ -33,9 +33,9 @@ export function createWorkout(day: string): Workout {
 export function createExercise(
   name: string,
   sets: number,
-  reps: number,
-  weight: string,
-  notes: string
+  reps?: number,
+  weight?: string,
+  notes?: string
 ): Exercise {
   return {
     id: crypto.randomUUID(),

@@ -14,9 +14,9 @@ extension ExerciseEntity {
         return Exercise(
             name: self.name ?? "",
             sets: Int(self.sets),
-            reps: Int(self.reps),
-            weight: self.weight ?? "",
-            notes: self.notes ?? ""
+            reps: self.reps > 0 ? Int(self.reps) : nil,
+            weight: self.weight?.isEmpty == false ? self.weight : nil,
+            notes: self.notes?.isEmpty == false ? self.notes : nil
         )
     }
 }

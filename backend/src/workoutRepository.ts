@@ -72,9 +72,9 @@ export function createScheduleFromRows(name: string, rows: string[][]) {
     const exercise = createExercise(
       exerciseName,
       parseInt(sets) || 0,
-      parseInt(reps) || 0,
-      weight || '-',
-      notes ?? ''
+      parseInt(reps) || undefined,
+      weight,
+      notes
     );
 
     addExercise(workout, group as Group, exercise);

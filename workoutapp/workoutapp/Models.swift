@@ -43,15 +43,15 @@ struct Exercise: Codable, Equatable {
     let id: String
     let name: String
     let sets: Int
-    let reps: Int
-    let weight: String
-    let notes: String
+    let reps: Int?
+    let weight: String?
+    let notes: String?
     init(
         name: String,
         sets: Int,
-        reps: Int,
-        weight: String,
-        notes: String,
+        reps: Int?,
+        weight: String?,
+        notes: String?,
         id: String = UUID().uuidString
     ) {
         self.id = id

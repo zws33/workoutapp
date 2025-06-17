@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mapping version="1.0" xmlns="http://apple.com/cocoa/migration/mapping" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <sourceModel identifier="WorkoutModel 2" versionIdentifier="">
+        <entity name="ExerciseEntity" managedObjectClassName="ExerciseEntity" syncable="YES">
+            <attribute name="id" attributeType="String"/>
+            <attribute name="name" attributeType="String"/>
+            <attribute name="notes" attributeType="String"/>
+            <attribute name="reps" attributeType="Integer 64" defaultValue="0"/>
+            <attribute name="sets" attributeType="Integer 64" defaultValue="0"/>
+            <attribute name="weight" attributeType="String"/>
+        </entity>
+        <entity name="ExerciseGroupEntity" managedObjectClassName="ExerciseGroupEntity" syncable="YES">
+            <attribute name="groupKey" attributeType="String"/>
+        </entity>
+        <entity name="ScheduleEntity" managedObjectClassName="ScheduleEntity" syncable="YES">
+            <attribute name="id" attributeType="String"/>
+            <attribute name="name" attributeType="String"/>
+        </entity>
+        <entity name="WorkoutEntity" managedObjectClassName="WorkoutEntity" syncable="YES">
+            <attribute name="day" attributeType="String"/>
+            <attribute name="id" attributeType="String"/>
+        </entity>
+    </sourceModel>
+    <destinationModel identifier="WorkoutModelV3" versionIdentifier="">
+        <entity name="ExerciseEntity" managedObjectClassName="ExerciseEntity" syncable="YES">
+            <attribute name="id" attributeType="String"/>
+            <attribute name="name" attributeType="String"/>
+            <attribute name="notes" optional="YES" attributeType="String"/>
+            <attribute name="reps" optional="YES" attributeType="Integer 64"/>
+            <attribute name="sets" attributeType="Integer 64" defaultValue="0"/>
+            <attribute name="weight" optional="YES" attributeType="String"/>
+        </entity>
+        <entity name="ExerciseGroupEntity" managedObjectClassName="ExerciseGroupEntity" syncable="YES">
+            <attribute name="groupKey" attributeType="String"/>
+        </entity>
+        <entity name="ScheduleEntity" managedObjectClassName="ScheduleEntity" syncable="YES">
+            <attribute name="id" attributeType="String"/>
+            <attribute name="name" attributeType="String"/>
+        </entity>
+        <entity name="WorkoutEntity" managedObjectClassName="WorkoutEntity" syncable="YES">
+            <attribute name="day" attributeType="String"/>
+            <attribute name="id" attributeType="String"/>
+        </entity>
+    </destinationModel>
+    <entityMapping sourceEntity="ExerciseEntity" destinationEntity="ExerciseEntity" mappingType="custom" customPolicy="ExerciseV2toV3MigrationPolicy">
+        <attributeMapping sourceAttribute="id" destinationAttribute="id"/>
+        <attributeMapping sourceAttribute="name" destinationAttribute="name"/>
+        <attributeMapping sourceAttribute="sets" destinationAttribute="sets"/>
+    </entityMapping>
+    <entityMapping sourceEntity="ExerciseGroupEntity" destinationEntity="ExerciseGroupEntity" mappingType="add">
+        <attributeMapping sourceAttribute="groupKey" destinationAttribute="groupKey"/>
+    </entityMapping>
+    <entityMapping sourceEntity="ScheduleEntity" destinationEntity="ScheduleEntity" mappingType="add">
+        <attributeMapping sourceAttribute="id" destinationAttribute="id"/>
+        <attributeMapping sourceAttribute="name" destinationAttribute="name"/>
+    </entityMapping>
+    <entityMapping sourceEntity="WorkoutEntity" destinationEntity="WorkoutEntity" mappingType="add">
+        <attributeMapping sourceAttribute="day" destinationAttribute="day"/>
+        <attributeMapping sourceAttribute="id" destinationAttribute="id"/>
+    </entityMapping>
+</mapping>
