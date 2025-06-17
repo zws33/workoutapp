@@ -25,7 +25,7 @@ struct ScheduleSelectorView: View {
                 
             case .error(let errorMessage):
                 ErrorPlaceholder(msg: errorMessage) {
-                    await viewModel.retry()
+                    await viewModel.refreshSchedules()
                 }
                 
             case .data(let weeks):
@@ -35,6 +35,9 @@ struct ScheduleSelectorView: View {
                     } label: {
                         WeekRow(week: week)
                     }
+                }
+                .refreshable {
+                    await viewModel.refreshSchedules()
                 }
                 .listStyle(.insetGrouped)
                 .scrollContentBackground(.hidden)

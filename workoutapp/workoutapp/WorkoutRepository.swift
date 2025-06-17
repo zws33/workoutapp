@@ -15,6 +15,7 @@ import os.log
 protocol WorkoutRepository {
     func getSchedule(for week: String) async throws -> Schedule
     func getSchedules() async throws -> [Schedule]
+    func syncSchedulesWithRemote() async throws
 }
 
 class WorkoutRepositoryImpl: WorkoutRepository {
@@ -101,34 +102,23 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
     }
     
-    func getSchedules() async throws -> [Schedule] {
-        
-        if shouldRefreshData() {
-            do {
-                AppLogger.info("Local data is stale. Syncing schedules...", category: .general)
-                try await syncSchedules()
-            } catch {
-                AppLogger.error("Failed to sync schedules", error: error, category: .general)
-            }
-            
-        }
-        
+    private func loadLocalSchedules() async throws -> [Schedule] {
         let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-
+        
         return try await backgroundContext.perform {
             let fetchRequest = ScheduleEntity.fetchRequest()
-
+            
             do {
                 let results = try backgroundContext.fetch(fetchRequest)
-
+                
                 // Handle empty results case
                 guard !results.isEmpty else {
                     AppLogger.info("No schedules found in Core Data",category: .coreData)
                     return []
                 }
-
+                
                 var schedules: [Schedule] = []
-
+                
                 for scheduleEntity in results {
                     do {
                         let schedule = try scheduleEntity.toSchedule()
@@ -138,10 +128,10 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                         throw error
                     }
                 }
-
+                
                 AppLogger.info("Successfully loaded \(schedules.count) schedules from Core Data",category: .coreData)
                 return schedules
-
+                
             } catch {
                 AppLogger.error("Core Data fetch failed for schedules",error: error,category: .coreData)
                 throw error
@@ -149,20 +139,33 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
     }
     
-    func setRefreshTimestamp() {
+    func getSchedules() async throws -> [Schedule] {
+        
+        if shouldRefreshData() {
+            do {
+                AppLogger.info("Local data is stale. Syncing schedules...", category: .general)
+                try await syncSchedulesWithRemote()
+            } catch {
+                AppLogger.error("Failed to sync schedules", error: error, category: .general)
+            }
+            
+        }
+        
+        return try await loadLocalSchedules()
+    }
+    
+    private func setRefreshTimestamp() {
         UserDefaults.standard.set(Date(), forKey: "lastDataRefresh")
     }
     
-    func shouldRefreshData() -> Bool {
+    private func shouldRefreshData() -> Bool {
         let lastRefresh = UserDefaults.standard.object(forKey: "lastDataRefresh") as? Date
-        AppLogger.info("Last data refresh at: \(String(describing: lastRefresh?.description))")
         return lastRefresh.map { Date().timeIntervalSince($0) > refreshInterval } ?? true
     }
     
-    func syncSchedules() async throws {
+    func syncSchedulesWithRemote() async throws {
         let schedules = try await fetchSchedules()
-        
-        // Clear all existing schedule data first
+
         try await clearAllSchedules()
         
         var synced = 0
@@ -172,6 +175,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                 synced += 1
             } catch {
                 AppLogger.error("Failed to save schedule: \(schedule.id)", error: error, category: .coreData)
+                throw error
             }
         }
         setRefreshTimestamp()
@@ -199,7 +203,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
     }
     
-    func fetchSchedules() async throws -> [Schedule] {
+    private func fetchSchedules() async throws -> [Schedule] {
         guard let url = URL(string: "\(baseURL)/api/schedules") else {
             throw NetworkError.invalidURL("Failed to create URL for sheets endpoint")
         }
@@ -270,6 +274,9 @@ class WorkoutRepositoryImpl: WorkoutRepository {
 }
 
 struct FakeWorkoutRepository: WorkoutRepository {
+    func syncSchedulesWithRemote() async throws {
+        // No-op
+    }
     
     func getSchedules() async throws -> [Schedule] {
         return [createFakeSchedule(for: "Week 1")]

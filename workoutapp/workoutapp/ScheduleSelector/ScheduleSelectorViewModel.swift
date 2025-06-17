@@ -27,10 +27,18 @@ final class ScheduleSelectorViewModel: ObservableObject {
             state = .error(error.localizedDescription)
         }
     }
-
-    func retry() async {
-        AppLogger.info("Retrying to load workout weeks", category: .general)
-        await loadSchedules()
+    
+    func refreshSchedules() async {
+        AppLogger.info("Attempting to sync workout weeks via pull to refresh", category: .general)
+        // Don't set state = .loading here - let pull-to-refresh handle it
+        do {
+            try await repository.syncSchedulesWithRemote()
+            let schedules = try await repository.getSchedules()
+            state = .data(weeks: schedules.map(\.name))
+        } catch {
+            AppLogger.error("Failed to sync schedules via pull to refresh", error: error, category: .general)
+            state = .error(error.localizedDescription)
+        }
     }
 }
 
