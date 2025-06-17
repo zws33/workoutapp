@@ -16,7 +16,8 @@ extension ExerciseEntity {
             sets: Int(self.sets),
             reps: self.reps > 0 ? Int(self.reps) : nil,
             weight: self.weight?.isEmpty == false ? self.weight : nil,
-            notes: self.notes?.isEmpty == false ? self.notes : nil
+            notes: self.notes?.isEmpty == false ? self.notes : nil,
+            id: self.identifier!
         )
     }
 }
@@ -57,7 +58,7 @@ extension ScheduleEntity {
             }
         }
         
-        return Schedule(name: name, workouts: workouts)
+        return Schedule(name: name, workouts: workouts, id: self.identifier!)
     }
 }
 
@@ -77,6 +78,6 @@ extension WorkoutEntity {
             }
         }
         
-        return Workout(day: day, exercises: exercises)
+        return Workout(day: day, exercises: exercises, id: self.identifier!)
     }
 }

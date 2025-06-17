@@ -5,6 +5,7 @@ import {Schedule} from './models.js';
 const WORKOUTS_COLLECTION = 'workouts';
 export const getWorkoutDb = (): WorkoutDb => {
   let firestoreDb = getFirestore();
+  firestoreDb.settings({ ignoreUndefinedProperties: true })
   return {
     saveSchedule: async (schedule: Schedule) => {
       await firestoreDb

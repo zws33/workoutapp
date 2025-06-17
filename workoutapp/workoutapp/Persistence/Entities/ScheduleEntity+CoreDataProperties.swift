@@ -2,7 +2,7 @@
 //  ScheduleEntity+CoreDataProperties.swift
 //  workoutapp
 //
-//  Created by Zach Smith on 6/15/25.
+//  Created by Zach Smith on 6/17/25.
 //
 //
 

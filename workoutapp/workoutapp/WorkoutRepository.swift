@@ -151,7 +151,13 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             
         }
         
-        return try await loadLocalSchedules()
+        let schedules = try await loadLocalSchedules()
+        if schedules.isEmpty {
+            AppLogger.warning("No schedules found locally. Syncing schedules...", category: .general)
+            try await syncSchedulesWithRemote()
+            return try await loadLocalSchedules()
+        }
+        return schedules
     }
     
     private func setRefreshTimestamp() {
@@ -174,7 +180,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                 try await saveSchedule(schedule)
                 synced += 1
             } catch {
-                AppLogger.error("Failed to save schedule: \(schedule.id)", error: error, category: .coreData)
+                AppLogger.error("Failed to save schedule - id: \(schedule.id) name: \(schedule.name)", error: error, category: .coreData)
                 throw error
             }
         }
@@ -299,14 +305,16 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 sets: 3,
                                 reps: 15,
                                 weight: "Bodyweight",
-                                notes: "Keep elbows close to body"
+                                notes: "Keep elbows close to body",
+                                id: UUID().uuidString
                             ),
                             Exercise(
                                 name: "Bench Press",
                                 sets: 4,
                                 reps: 8,
                                 weight: "135 lbs",
-                                notes: ""
+                                notes: "",
+                                id: UUID().uuidString
                             )
                         ],
                         "Secondary": [
@@ -315,10 +323,12 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 sets: 3,
                                 reps: 12,
                                 weight: "40 lbs",
-                                notes: "Slow controlled movement"
+                                notes: "Slow controlled movement",
+                                id: UUID().uuidString
                             )
                         ]
-                    ]
+                    ],
+                    id: UUID().uuidString
                 ),
                 Workout(
                     day: "Tuesday",
@@ -329,7 +339,8 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 sets: 1,
                                 reps: 0,
                                 weight: "",
-                                notes: "20 minutes at moderate pace"
+                                notes: "20 minutes at moderate pace",
+                                id: UUID().uuidString
                             )
                         ],
                         "Core": [
@@ -338,17 +349,20 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 sets: 3,
                                 reps: 0,
                                 weight: "",
-                                notes: "Hold for 60 seconds"
+                                notes: "Hold for 60 seconds",
+                                id: UUID().uuidString
                             ),
                             Exercise(
                                 name: "Russian Twists",
                                 sets: 3,
                                 reps: 20,
                                 weight: "15 lbs",
-                                notes: ""
+                                notes: "",
+                                id: UUID().uuidString
                             )
                         ]
-                    ]
+                    ],
+                    id: UUID().uuidString
                 ),
                 Workout(
                     day: "Wednesday",
@@ -359,19 +373,23 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 sets: 4,
                                 reps: 12,
                                 weight: "185 lbs",
-                                notes: "Focus on form"
+                                notes: "Focus on form",
+                                id: UUID().uuidString
                             ),
                             Exercise(
                                 name: "Deadlifts",
                                 sets: 3,
                                 reps: 8,
                                 weight: "225 lbs",
-                                notes: "Keep back straight"
+                                notes: "Keep back straight",
+                                id: UUID().uuidString
                             )
                         ]
-                    ]
+                    ],
+                    id: UUID().uuidString
                 )
-            ]
+            ],
+            id: UUID().uuidString
         )
     }
 }

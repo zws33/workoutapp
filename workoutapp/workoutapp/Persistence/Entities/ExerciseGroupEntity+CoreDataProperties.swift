@@ -2,7 +2,7 @@
 //  ExerciseGroupEntity+CoreDataProperties.swift
 //  workoutapp
 //
-//  Created by Zach Smith on 6/13/25.
+//  Created by Zach Smith on 6/17/25.
 //
 //
 
@@ -17,8 +17,8 @@ extension ExerciseGroupEntity {
     }
 
     @NSManaged public var groupKey: String?
-    @NSManaged public var workout: WorkoutEntity?
     @NSManaged public var exercises: NSSet?
+    @NSManaged public var workout: WorkoutEntity?
 
 }
 

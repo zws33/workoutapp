@@ -1,5 +1,14 @@
 import {GoogleSheetsService} from './googleSheetsService.js';
-import {addExercise, createExercise, createSchedule, createWorkout, Group, Schedule, Workout,} from './models.js';
+import {
+  addExercise,
+  createExercise,
+  createSchedule,
+  createWorkout,
+  createWorkoutData,
+  Group,
+  Schedule,
+  Workout, WorkoutData,
+} from './models.js';
 import cron from 'node-cron';
 import {WorkoutDb} from './workoutDb.js';
 
@@ -57,16 +66,18 @@ export class WorkoutRepository {
 }
 
 export function createScheduleFromRows(name: string, rows: string[][]) {
-  const workouts: Workout[] = [];
+  const workoutData: WorkoutData[] = [];
+
+  let days = new Set(rows.slice(1).map((row) => row[0]));
 
   rows.slice(1).forEach((row) => {
     const [day, group, exerciseName, sets, reps, weight, notes] = row;
 
-    let workout = workouts.find((w) => w.day === day);
+    let workout = workoutData.find((w) => w.day === day);
 
     if (!workout) {
-      workout = createWorkout(day);
-      workouts.push(workout);
+      workout = createWorkoutData(day);
+      workoutData.push(workout);
     }
 
     const exercise = createExercise(
@@ -77,8 +88,9 @@ export function createScheduleFromRows(name: string, rows: string[][]) {
       notes
     );
 
-    addExercise(workout, group as Group, exercise);
+    addExercise(workout, group.toLowerCase() as Group, exercise);
   });
 
+  let workouts: Workout[] = workoutData.map((data) => createWorkout(data.day, data.exercises));
   return createSchedule(name, workouts);
 }

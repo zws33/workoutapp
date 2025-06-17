@@ -24,6 +24,7 @@ struct PersistenceController {
         container = NSPersistentContainer(name: "WorkoutModel")
         
         if let storeDescription = container.persistentStoreDescriptions.first {
+            // Enable automatic lightweight migration
             storeDescription.shouldMigrateStoreAutomatically = true
             storeDescription.shouldInferMappingModelAutomatically = true
             
@@ -51,6 +52,8 @@ struct PersistenceController {
                 // You could implement graceful degradation here if needed
                 fatalError("Core Data store failed to load. Please restart the app.")
                 #endif
+            } else {
+                Self.logger.info("Core Data store loaded successfully")
             }
         }
 

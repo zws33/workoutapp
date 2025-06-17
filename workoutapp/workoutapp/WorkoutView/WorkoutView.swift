@@ -75,7 +75,7 @@ struct ExerciseList: View {
             List {
                 ForEach(sortedSections(in: workout), id: \.self) { key in
                     if let items = workout.exercises[key], !items.isEmpty {
-                        Section(key.uppercased()) {
+                        Section(key.capitalized) {
                             ForEach(items, id: \.name) {
                                 ExerciseRow(exercise: $0)
                             }
@@ -92,7 +92,7 @@ struct ExerciseList: View {
     }
 
     private func sortedSections(in workout: Workout) -> [String] {
-        let priority = ["Primary", "Secondary", "Cardio", "Core"]
+        let priority = ["primary", "secondary", "cardio", "core"]
         return priority.filter { workout.exercises.keys.contains($0) }
     }
 }
@@ -204,21 +204,24 @@ extension Exercise {
             sets: 3,
             reps: 15,
             weight: "Bodyweight",
-            notes: "Keep elbows close to body"
+            notes: "Keep elbows close to body",
+            id: "1235"
         ),
         Exercise(
             name: "Bench Press",
             sets: 4,
             reps: 8,
             weight: "135 lbs",
-            notes: ""
+            notes: "",
+            id: "1235"
         ),
         Exercise(
             name: "Incline Dumbbell Press",
             sets: 3,
             reps: 12,
             weight: "40 lbs",
-            notes: "Slow controlled movement"
+            notes: "Slow controlled movement",
+            id: "1235"
         )
     ]
     
@@ -228,14 +231,16 @@ extension Exercise {
             sets: 1,
             reps: 0,
             weight: "",
-            notes: "20 minutes at moderate pace"
+            notes: "20 minutes at moderate pace",
+            id: "1235"
         ),
         Exercise(
             name: "Rowing Machine",
             sets: 3,
             reps: 0,
             weight: "",
-            notes: "5 minutes each set"
+            notes: "5 minutes each set",
+            id: "1235"
         )
     ]
     
@@ -245,14 +250,16 @@ extension Exercise {
             sets: 3,
             reps: 0,
             weight: "",
-            notes: "Hold for 60 seconds"
+            notes: "Hold for 60 seconds",
+            id: "1235"
         ),
         Exercise(
             name: "Russian Twists",
             sets: 3,
             reps: 20,
             weight: "15 lbs",
-            notes: ""
+            notes: "",
+            id: "1235"
         )
     ]
 }
