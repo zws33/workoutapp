@@ -12,12 +12,12 @@ import CoreData
 extension ExerciseEntity {
     func toExercise() -> Exercise {
         return Exercise(
+            id: self.identifier!,
             name: self.name ?? "",
             sets: Int(self.sets),
             reps: self.reps > 0 ? Int(self.reps) : nil,
             weight: self.weight?.isEmpty == false ? self.weight : nil,
-            notes: self.notes?.isEmpty == false ? self.notes : nil,
-            id: self.identifier!
+            notes: self.notes?.isEmpty == false ? self.notes : nil
         )
     }
 }
@@ -58,7 +58,7 @@ extension ScheduleEntity {
             }
         }
         
-        return Schedule(name: name, workouts: workouts, id: self.identifier!)
+        return Schedule(id: self.identifier!, name: name, workouts: workouts)
     }
 }
 
@@ -78,6 +78,6 @@ extension WorkoutEntity {
             }
         }
         
-        return Workout(day: day, exercises: exercises, id: self.identifier!)
+        return Workout(id: self.identifier!, day: day, exercises: exercises)
     }
 }

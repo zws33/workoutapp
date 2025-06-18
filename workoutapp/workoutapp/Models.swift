@@ -17,7 +17,7 @@ struct Schedule: Codable, Equatable {
     let id: String
     let name: String
     let workouts: [Workout]
-    init(name: String, workouts: [Workout], id: String) {
+    init(id: String, name: String, workouts: [Workout]) {
         self.id = id
         self.name = name
         self.workouts = workouts
@@ -29,9 +29,9 @@ struct Workout: Codable, Equatable {
     let day: String
     let exercises: [String: [Exercise]]
     init(
+        id: String,
         day: String,
-        exercises: [String : [Exercise]],
-        id: String
+        exercises: [String : [Exercise]]
     ) {
         self.id = id
         self.day = day
@@ -47,12 +47,12 @@ struct Exercise: Codable, Equatable {
     let weight: String?
     let notes: String?
     init(
+        id: String,
         name: String,
         sets: Int,
         reps: Int?,
         weight: String?,
-        notes: String?,
-        id: String
+        notes: String?
     ) {
         self.id = id
         self.name = name

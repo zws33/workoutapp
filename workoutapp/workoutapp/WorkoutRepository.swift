@@ -363,102 +363,102 @@ struct FakeWorkoutRepository: WorkoutRepository {
 
     private func createFakeSchedule(for week: String) -> Schedule {
         return Schedule(
+            id: UUID().uuidString,
             name: week,
             workouts: [
                 Workout(
+                    id: UUID().uuidString,
                     day: "Monday",
                     exercises: [
                         "Primary": [
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Push-ups",
                                 sets: 3,
                                 reps: 15,
                                 weight: "Bodyweight",
-                                notes: "Keep elbows close to body",
-                                id: UUID().uuidString
+                                notes: "Keep elbows close to body"
                             ),
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Bench Press",
                                 sets: 4,
                                 reps: 8,
                                 weight: "135 lbs",
-                                notes: "",
-                                id: UUID().uuidString
+                                notes: ""
                             ),
                         ],
                         "Secondary": [
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Incline Dumbbell Press",
                                 sets: 3,
                                 reps: 12,
                                 weight: "40 lbs",
-                                notes: "Slow controlled movement",
-                                id: UUID().uuidString
+                                notes: "Slow controlled movement"
                             )
                         ],
-                    ],
-                    id: UUID().uuidString
+                    ]
                 ),
                 Workout(
+                    id: UUID().uuidString,
                     day: "Tuesday",
                     exercises: [
                         "Cardio": [
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Treadmill Run",
                                 sets: 1,
                                 reps: 0,
                                 weight: "",
-                                notes: "20 minutes at moderate pace",
-                                id: UUID().uuidString
+                                notes: "20 minutes at moderate pace"
                             )
                         ],
                         "Core": [
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Plank",
                                 sets: 3,
                                 reps: 0,
                                 weight: "",
-                                notes: "Hold for 60 seconds",
-                                id: UUID().uuidString
+                                notes: "Hold for 60 seconds"
                             ),
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Russian Twists",
                                 sets: 3,
                                 reps: 20,
                                 weight: "15 lbs",
-                                notes: "",
-                                id: UUID().uuidString
+                                notes: ""
                             ),
                         ],
-                    ],
-                    id: UUID().uuidString
+                    ]
                 ),
                 Workout(
+                    id: UUID().uuidString,
                     day: "Wednesday",
                     exercises: [
                         "Primary": [
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Squats",
                                 sets: 4,
                                 reps: 12,
                                 weight: "185 lbs",
-                                notes: "Focus on form",
-                                id: UUID().uuidString
+                                notes: "Focus on form"
                             ),
                             Exercise(
+                                id: UUID().uuidString,
                                 name: "Deadlifts",
                                 sets: 3,
                                 reps: 8,
                                 weight: "225 lbs",
-                                notes: "Keep back straight",
-                                id: UUID().uuidString
+                                notes: "Keep back straight"
                             ),
                         ]
-                    ],
-                    id: UUID().uuidString
+                    ]
                 ),
-            ],
-            id: UUID().uuidString
+            ]
         )
     }
 }

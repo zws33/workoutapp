@@ -200,66 +200,66 @@ struct ErrorPlaceholder: View {
 extension Exercise {
     static let sampleExercises = [
         Exercise(
+            id: "1235",
             name: "Push-ups",
             sets: 3,
             reps: 15,
             weight: "Bodyweight",
-            notes: "Keep elbows close to body",
-            id: "1235"
+            notes: "Keep elbows close to body"
         ),
         Exercise(
+            id: "1235",
             name: "Bench Press",
             sets: 4,
             reps: 8,
             weight: "135 lbs",
-            notes: "",
-            id: "1235"
+            notes: ""
         ),
         Exercise(
+            id: "1235",
             name: "Incline Dumbbell Press",
             sets: 3,
             reps: 12,
             weight: "40 lbs",
-            notes: "Slow controlled movement",
-            id: "1235"
+            notes: "Slow controlled movement"
         )
     ]
     
     static let sampleCardioExercises = [
         Exercise(
+            id: "1235",
             name: "Treadmill Run",
             sets: 1,
             reps: 0,
             weight: "",
-            notes: "20 minutes at moderate pace",
-            id: "1235"
+            notes: "20 minutes at moderate pace"
         ),
         Exercise(
+            id: "1235",
             name: "Rowing Machine",
             sets: 3,
             reps: 0,
             weight: "",
-            notes: "5 minutes each set",
-            id: "1235"
+            notes: "5 minutes each set"
         )
     ]
     
     static let sampleCoreExercises = [
         Exercise(
+            id: "1235",
             name: "Plank",
             sets: 3,
             reps: 0,
             weight: "",
-            notes: "Hold for 60 seconds",
-            id: "1235"
+            notes: "Hold for 60 seconds"
         ),
         Exercise(
+            id: "1235",
             name: "Russian Twists",
             sets: 3,
             reps: 20,
             weight: "15 lbs",
-            notes: "",
-            id: "1235"
+            notes: ""
         )
     ]
 }
