@@ -5,12 +5,13 @@
 //  Created by Zach Smith on 4/15/25.
 //
 
+import Combine
+import CoreData
 import Foundation
 import GoogleSignIn
-import CoreData
-import Combine
 import os.log
 
+// MARK: - WorkoutRepository Protocol
 
 protocol WorkoutRepository {
     func getSchedule(for week: String) async throws -> Schedule
@@ -18,50 +19,57 @@ protocol WorkoutRepository {
     func syncSchedulesWithRemote() async throws
 }
 
+// MARK: - WorkoutRepositoryImpl
+
 class WorkoutRepositoryImpl: WorkoutRepository {
+
+    // MARK: - Properties
+
     private let session: URLSession
     private let isProd: Bool
     private let authManager: AuthManager
     private let refreshInterval: TimeInterval = 259_200
-    
-    init(session: URLSession = .shared,
-         isProd: Bool = true,
-         authManager: AuthManager
+
+    private var baseURL: String {
+        isProd ? "https://zwsmith.me" : "http://localhost:3000"
+    }
+
+    // MARK: - Initialization
+
+    init(
+        session: URLSession = .shared,
+        isProd: Bool = true,
+        authManager: AuthManager
     ) {
         self.session = session
         self.isProd = isProd
         self.authManager = authManager
     }
-    
-    private var baseURL: String {
-        isProd ? "https://zwsmith.me" : "http://localhost:3000"
-    }
-    
-    private func workoutsURL(for week: String) throws -> URL {
-        guard let url = URL(string: "\(baseURL)/api/workouts/\(week)") else {
-            throw NetworkError.invalidURL("Failed to create URL for week: \(week)")
-        }
-        return url
-    }
-    
+
+    // MARK: - Public Methods
+
     func getSchedule(for week: String) async throws -> Schedule {
-        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-        
+        let backgroundContext = PersistenceController.shared.container
+            .newBackgroundContext()
+
         let localSchedule: Schedule? = try await backgroundContext.perform {
-            let fetchRequest: NSFetchRequest<ScheduleEntity> = ScheduleEntity.fetchRequest()
+            let fetchRequest: NSFetchRequest<ScheduleEntity> =
+                ScheduleEntity.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "name == %@", week)
             fetchRequest.fetchLimit = 1
-            
+
             let result = try backgroundContext.fetch(fetchRequest)
-            
+
             if let scheduleEntity = result.first {
                 return try scheduleEntity.toSchedule()
             }
             return nil
         }
-        
+
         if let schedule = localSchedule {
-            AppLogger.info("Returning local schedule for week: \(week)", category: .coreData)
+            AppLogger.info(
+                "Returning local schedule for week: \(week)",
+                category: .coreData)
             return schedule
         } else {
             AppLogger.info("Fetching schedule from remote")
@@ -70,181 +78,193 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             do {
                 try await saveSchedule(remoteSchedule)
             } catch {
-                AppLogger.error("Failed to save schedule", error: error, category: .coreData)
+                AppLogger.error(
+                    "Failed to save schedule", error: error, category: .coreData
+                )
                 throw error
             }
-            
-            AppLogger.info("Returning remote schedule for: \(week)", category: .networking)
+
+            AppLogger.info(
+                "Returning remote schedule for: \(week)", category: .networking)
             return remoteSchedule
         }
     }
-    
-    private func fetchSchedule(for week: String) async throws -> Schedule {
-        var request = URLRequest(url: try workoutsURL(for: week))
-        request.httpMethod = "GET"
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        
-        let idToken = try await authManager.getIDToken()
-        request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw NetworkError.invalidResponse
-        }
-        
-        do {
-            let decoder = JSONDecoder()
-            return try decoder.decode(Schedule.self, from: data)
-        } catch {
-            AppLogger.error("Failed to decode data", error: error, category: .networking)
-            throw NetworkError.decodingFailed(error)
-        }
-    }
-    
-    private func loadLocalSchedules() async throws -> [Schedule] {
-        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-        
-        return try await backgroundContext.perform {
-            let fetchRequest = ScheduleEntity.fetchRequest()
-            
-            do {
-                let results = try backgroundContext.fetch(fetchRequest)
-                
-                // Handle empty results case
-                guard !results.isEmpty else {
-                    AppLogger.info("No schedules found in Core Data",category: .coreData)
-                    return []
-                }
-                
-                var schedules: [Schedule] = []
-                
-                for scheduleEntity in results {
-                    do {
-                        let schedule = try scheduleEntity.toSchedule()
-                        schedules.append(schedule)
-                    } catch {
-                        AppLogger.error("Failed to convert ScheduleEntity to Schedule",error: error,category: .coreData)
-                        throw error
-                    }
-                }
-                
-                AppLogger.info("Successfully loaded \(schedules.count) schedules from Core Data",category: .coreData)
-                return schedules
-                
-            } catch {
-                AppLogger.error("Core Data fetch failed for schedules",error: error,category: .coreData)
-                throw error
-            }
-        }
-    }
-    
+
     func getSchedules() async throws -> [Schedule] {
-        
+
         if shouldRefreshData() {
             do {
-                AppLogger.info("Local data is stale. Syncing schedules...", category: .general)
+                AppLogger.info(
+                    "Local data is stale. Syncing schedules...",
+                    category: .general)
                 try await syncSchedulesWithRemote()
             } catch {
-                AppLogger.error("Failed to sync schedules", error: error, category: .general)
+                AppLogger.error(
+                    "Failed to sync schedules", error: error, category: .general
+                )
             }
-            
+
         }
-        
+
         let schedules = try await loadLocalSchedules()
         if schedules.isEmpty {
-            AppLogger.warning("No schedules found locally. Syncing schedules...", category: .general)
+            AppLogger.warning(
+                "No schedules found locally. Syncing schedules...",
+                category: .general)
             try await syncSchedulesWithRemote()
             return try await loadLocalSchedules()
         }
         return schedules
     }
-    
-    private func setRefreshTimestamp() {
-        UserDefaults.standard.set(Date(), forKey: "lastDataRefresh")
-    }
-    
-    private func shouldRefreshData() -> Bool {
-        let lastRefresh = UserDefaults.standard.object(forKey: "lastDataRefresh") as? Date
-        return lastRefresh.map { Date().timeIntervalSince($0) > refreshInterval } ?? true
-    }
-    
+
     func syncSchedulesWithRemote() async throws {
         let schedules = try await fetchSchedules()
 
         try await clearAllSchedules()
-        
+
         var synced = 0
         for schedule in schedules {
             do {
                 try await saveSchedule(schedule)
                 synced += 1
             } catch {
-                AppLogger.error("Failed to save schedule - id: \(schedule.id) name: \(schedule.name)", error: error, category: .coreData)
+                AppLogger.error(
+                    "Failed to save schedule - id: \(schedule.id) name: \(schedule.name)",
+                    error: error, category: .coreData)
                 throw error
             }
         }
         setRefreshTimestamp()
         AppLogger.info("\(synced)/\(schedules.count) schedules saved")
     }
-    
-    private func clearAllSchedules() async throws {
-        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-        
-        try await backgroundContext.perform {
-            let fetchRequest = ScheduleEntity.fetchRequest()
-            
-            do {
-                let schedules = try backgroundContext.fetch(fetchRequest)
-                for schedule in schedules {
-                    backgroundContext.delete(schedule)
-                }
-                
-                try backgroundContext.save()
-                AppLogger.info("Cleared \(schedules.count) existing schedules from Core Data", category: .coreData)
-            } catch {
-                AppLogger.error("Failed to clear existing schedules", error: error, category: .coreData)
-                throw error
-            }
-        }
-    }
-    
-    private func fetchSchedules() async throws -> [Schedule] {
-        guard let url = URL(string: "\(baseURL)/api/schedules") else {
-            throw NetworkError.invalidURL("Failed to create URL for sheets endpoint")
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        
-        let idToken = try await authManager.getIDToken()
-        request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
-        
-        let (data, response): (Data, URLResponse)
-        do {
-            (data, response) = try await session.data(for: request)
-        } catch {
-            AppLogger.error("Network request failed", error: error, category: .networking)
-            throw NetworkError.transportError(error)
-        }
 
+    // MARK: - Private Methods
+
+    private func workoutsURL(for week: String) throws -> URL {
+        guard let url = URL(string: "\(baseURL)/api/workouts/\(week)") else {
+            throw NetworkError.invalidURL(
+                "Failed to create URL for week: \(week)")
+        }
+        return url
+    }
+
+    private func fetchSchedule(for week: String) async throws -> Schedule {
+        var request = URLRequest(url: try workoutsURL(for: week))
+        request.httpMethod = "GET"
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+
+        let idToken = try await authManager.getIDToken()
+        request.addValue(
+            "Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
+            (200...299).contains(httpResponse.statusCode)
+        else {
             throw NetworkError.invalidResponse
         }
 
         do {
-            let response = try JSONDecoder().decode(SchedulesResponse.self, from: data)
-            return response.data
+            let decoder = JSONDecoder()
+            return try decoder.decode(Schedule.self, from: data)
         } catch {
-            AppLogger.error("Error decoding response data", error: error, category: .networking)
+            AppLogger.error(
+                "Failed to decode data", error: error, category: .networking)
             throw NetworkError.decodingFailed(error)
         }
     }
-    
+
+    private func fetchSchedules() async throws -> [Schedule] {
+        guard let url = URL(string: "\(baseURL)/api/schedules") else {
+            throw NetworkError.invalidURL(
+                "Failed to create URL for sheets endpoint")
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let idToken = try await authManager.getIDToken()
+        request.addValue(
+            "Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            AppLogger.error(
+                "Network request failed", error: error, category: .networking)
+            throw NetworkError.transportError(error)
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse,
+            (200...299).contains(httpResponse.statusCode)
+        else {
+            throw NetworkError.invalidResponse
+        }
+
+        do {
+            let response = try JSONDecoder().decode(
+                SchedulesResponse.self, from: data)
+            return response.data
+        } catch {
+            AppLogger.error(
+                "Error decoding response data", error: error,
+                category: .networking)
+            throw NetworkError.decodingFailed(error)
+        }
+    }
+
+    // MARK: - Core Data Methods
+
+    private func loadLocalSchedules() async throws -> [Schedule] {
+        let backgroundContext = PersistenceController.shared.container
+            .newBackgroundContext()
+
+        return try await backgroundContext.perform {
+            let fetchRequest = ScheduleEntity.fetchRequest()
+
+            do {
+                let results = try backgroundContext.fetch(fetchRequest)
+
+                // Handle empty results case
+                guard !results.isEmpty else {
+                    AppLogger.info(
+                        "No schedules found in Core Data", category: .coreData)
+                    return []
+                }
+
+                var schedules: [Schedule] = []
+
+                for scheduleEntity in results {
+                    do {
+                        let schedule = try scheduleEntity.toSchedule()
+                        schedules.append(schedule)
+                    } catch {
+                        AppLogger.error(
+                            "Failed to convert ScheduleEntity to Schedule",
+                            error: error, category: .coreData)
+                        throw error
+                    }
+                }
+
+                AppLogger.info(
+                    "Successfully loaded \(schedules.count) schedules from Core Data",
+                    category: .coreData)
+                return schedules
+
+            } catch {
+                AppLogger.error(
+                    "Core Data fetch failed for schedules", error: error,
+                    category: .coreData)
+                throw error
+            }
+        }
+    }
+
     private func saveSchedule(_ schedule: Schedule) async throws {
         // Create a new background context for this operation
-        let backgroundContext = PersistenceController.shared.container.newBackgroundContext()
-        
+        let backgroundContext = PersistenceController.shared.container
+            .newBackgroundContext()
+
         try await backgroundContext.perform {
             let scheduleEntity = ScheduleEntity(context: backgroundContext)
             scheduleEntity.identifier = schedule.id
@@ -257,12 +277,14 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                 workoutEntity.schedule = scheduleEntity
 
                 for (groupKey, exercises) in workout.exercises {
-                    let groupEntity = ExerciseGroupEntity(context: backgroundContext)
+                    let groupEntity = ExerciseGroupEntity(
+                        context: backgroundContext)
                     groupEntity.groupKey = groupKey
                     groupEntity.workout = workoutEntity
 
                     for exercise in exercises {
-                        let exerciseEntity = ExerciseEntity(context: backgroundContext)
+                        let exerciseEntity = ExerciseEntity(
+                            context: backgroundContext)
                         exerciseEntity.identifier = exercise.id
                         exerciseEntity.name = exercise.name
                         exerciseEntity.sets = Int64(exercise.sets)
@@ -273,26 +295,73 @@ class WorkoutRepositoryImpl: WorkoutRepository {
                     }
                 }
             }
-            
+
             try backgroundContext.save()
         }
     }
+
+    private func clearAllSchedules() async throws {
+        let backgroundContext = PersistenceController.shared.container
+            .newBackgroundContext()
+
+        try await backgroundContext.perform {
+            let fetchRequest = ScheduleEntity.fetchRequest()
+
+            do {
+                let schedules = try backgroundContext.fetch(fetchRequest)
+                for schedule in schedules {
+                    backgroundContext.delete(schedule)
+                }
+
+                try backgroundContext.save()
+                AppLogger.info(
+                    "Cleared \(schedules.count) existing schedules from Core Data",
+                    category: .coreData)
+            } catch {
+                AppLogger.error(
+                    "Failed to clear existing schedules", error: error,
+                    category: .coreData)
+                throw error
+            }
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    private func setRefreshTimestamp() {
+        UserDefaults.standard.set(Date(), forKey: "lastDataRefresh")
+    }
+
+    private func shouldRefreshData() -> Bool {
+        let lastRefresh =
+            UserDefaults.standard.object(forKey: "lastDataRefresh") as? Date
+        return lastRefresh.map {
+            Date().timeIntervalSince($0) > refreshInterval
+        } ?? true
+    }
 }
 
+// MARK: - FakeWorkoutRepository
+
 struct FakeWorkoutRepository: WorkoutRepository {
-    func syncSchedulesWithRemote() async throws {
-        // No-op
-    }
     
-    func getSchedules() async throws -> [Schedule] {
-        return [createFakeSchedule(for: "Week 1")]
-    }
+    // MARK: - Public Methods
     
     func getSchedule(for week: String) async throws -> Schedule {
         return createFakeSchedule(for: week)
     }
+
+    func getSchedules() async throws -> [Schedule] {
+        return [createFakeSchedule(for: "Week 1")]
+    }
+
+    func syncSchedulesWithRemote() async throws {
+        // No-op
+    }
     
-    func createFakeSchedule(for week: String) -> Schedule{
+    // MARK: - Private Methods
+
+    private func createFakeSchedule(for week: String) -> Schedule {
         return Schedule(
             name: week,
             workouts: [
@@ -315,7 +384,7 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 weight: "135 lbs",
                                 notes: "",
                                 id: UUID().uuidString
-                            )
+                            ),
                         ],
                         "Secondary": [
                             Exercise(
@@ -326,7 +395,7 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 notes: "Slow controlled movement",
                                 id: UUID().uuidString
                             )
-                        ]
+                        ],
                     ],
                     id: UUID().uuidString
                 ),
@@ -359,8 +428,8 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 weight: "15 lbs",
                                 notes: "",
                                 id: UUID().uuidString
-                            )
-                        ]
+                            ),
+                        ],
                     ],
                     id: UUID().uuidString
                 ),
@@ -383,11 +452,11 @@ struct FakeWorkoutRepository: WorkoutRepository {
                                 weight: "225 lbs",
                                 notes: "Keep back straight",
                                 id: UUID().uuidString
-                            )
+                            ),
                         ]
                     ],
                     id: UUID().uuidString
-                )
+                ),
             ],
             id: UUID().uuidString
         )
