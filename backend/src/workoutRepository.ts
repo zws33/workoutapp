@@ -32,6 +32,7 @@ export class WorkoutRepository {
   }
 
   async syncWorkoutData() {
+    console.log('Syncing workout data...');
     try {
       const sheets = await this.googleSheetsService.getSheetNames();
       await Promise.all(
@@ -41,7 +42,6 @@ export class WorkoutRepository {
           await this.db.saveSchedule(schedule);
         })
       );
-      console.log('Workout data successfully updated in Firestore.');
     } catch (error) {
       console.error('Error during cron job:', error);
     }
