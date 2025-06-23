@@ -66,6 +66,7 @@ struct WorkoutView: View {
 
 struct ExerciseList: View {
     let workouts: [Workout]
+    
     @Binding var selectedDay: String?
 
     var body: some View {
@@ -74,7 +75,7 @@ struct ExerciseList: View {
 
             List {
                 ForEach(sortedSections(in: workout), id: \.self) { key in
-                    if let items = workout.exercises[key], !items.isEmpty {
+                    if let items = workout.exercises[key]?.sorted(by: { $0.name < $1.name }), !items.isEmpty {
                         Section(key.capitalized) {
                             ForEach(items, id: \.name) {
                                 ExerciseRow(exercise: $0)
