@@ -1,4 +1,4 @@
-import {createHash} from "./utils.js";
+import { createHash } from './utils.js';
 export const GroupList = ['primary', 'secondary', 'cardio', 'core'] as const;
 export type Group = (typeof GroupList)[number];
 
@@ -23,15 +23,18 @@ export interface Schedule {
   workouts: Workout[];
 }
 
-export function createWorkout(day: string, exercises: Partial<Record<Group, Exercise[]>>): Workout {
+export function createWorkout(
+  day: string,
+  exercises: Partial<Record<Group, Exercise[]>>
+): Workout {
   return {
-    id: createHash({day, exercises}),
+    id: createHash({ day, exercises }),
     day,
     exercises,
   };
 }
 
-export type WorkoutData = Omit<Workout, "id">;
+export type WorkoutData = Omit<Workout, 'id'>;
 
 export function createWorkoutData(day: string): WorkoutData {
   return {

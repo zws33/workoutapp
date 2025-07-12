@@ -1,5 +1,5 @@
 import React from 'react';
-import CreateWorkoutForm from './components/CreateWorkoutForm.tsx';
+import ScheduleForm from './components/ScheduleForm.tsx';
 
 function App() {
   return (
@@ -8,7 +8,7 @@ function App() {
         <h1 className="text-primary">Workout App</h1>
       </header>
       <main className="d-flex flex-column gap-4">
-        <CreateWorkoutForm />
+        <ScheduleForm />
       </main>
     </div>
   );

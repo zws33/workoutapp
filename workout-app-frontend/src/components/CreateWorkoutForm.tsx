@@ -1,9 +1,8 @@
 import React, { useReducer, useState } from 'react';
-import type { Exercise, Group } from '../types/Exercise.ts';
+import type { Exercise, Group, ExerciseGroups, Workout } from '../types/Exercise.ts';
 import ExerciseForm from './ExerciseForm.tsx';
 import ExerciseList from './ExerciseList.tsx';
 
-type ExerciseGroups = Partial<Record<Group, Exercise[]>>;
 type AddExercise = {
   type: 'add';
   exercise: Exercise;
@@ -78,11 +77,25 @@ function reducer(state: ExerciseGroups, action: Action): ExerciseGroups {
 
 const groupOrder: Group[] = ['primary', 'secondary', 'core', 'cardio'];
 
-const CreateWorkoutForm: React.FC<{ workoutName?: string }> = ({
-  workoutName = '',
+interface CreateWorkoutFormProps {
+  initialWorkout?: Workout;
+  workoutDay: number;
+  onSave: (workout: Workout) => void;
+  onCancel: () => void;
+  isEditing?: boolean;
+}
+
+const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
+  initialWorkout,
+  workoutDay,
+  onSave,
+  onCancel,
+  isEditing = false,
 }) => {
-  const [name, setSchedule] = useState<string>(workoutName);
-  const [exerciseGroups, dispatch] = useReducer(reducer, {} as ExerciseGroups);
+  const [exerciseGroups, dispatch] = useReducer(
+    reducer,
+    initialWorkout?.exercises || ({} as ExerciseGroups)
+  );
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(
     null
   );
@@ -121,11 +134,6 @@ const CreateWorkoutForm: React.FC<{ workoutName?: string }> = ({
   };
 
   const handleSaveWorkout = (): void => {
-    if (!name.trim()) {
-      alert('Please enter a workout name.');
-      return;
-    }
-
     const totalExerciseCount = Object.values(exerciseGroups).reduce(
       (total, exercises) => total + exercises.length,
       0
@@ -136,22 +144,26 @@ const CreateWorkoutForm: React.FC<{ workoutName?: string }> = ({
       return;
     }
 
-    const scheduleData = {
-      name: name.trim(),
-      workouts: [
-        {
-          day: 1,
-          exercises: exerciseGroups,
-        },
-      ],
+    const workout: Workout = {
+      id: initialWorkout?.id,
+      day: workoutDay,
+      exercises: exerciseGroups,
     };
 
-    console.log('Creating schedule:', scheduleData);
-    // TODO: Make POST request to backend API
+    onSave(workout);
   };
 
   const handleClearAll = (): void => {
-    throw new Error('Not implemented yet');
+    dispatch({ type: 'cancel_edit' });
+    // Reset to empty state
+    Object.keys(exerciseGroups).forEach(() => {
+      // Clear all exercises by removing them one by one
+      Object.values(exerciseGroups).flat().forEach(exercise => {
+        if (exercise.id) {
+          dispatch({ type: 'remove', exerciseId: exercise.id });
+        }
+      });
+    });
   };
 
   const getExerciseById = (id: string): Exercise | undefined => {
@@ -167,24 +179,15 @@ const CreateWorkoutForm: React.FC<{ workoutName?: string }> = ({
   return (
     <div className="container py-4" style={{ maxWidth: '800px' }}>
       <div className="card shadow-sm">
-        <div className="card-header bg-primary text-white">
-          <h4 className="mb-0">Create New Workout</h4>
-        </div>
-        <div className="card-body border-bottom">
-          <div className="mb-3">
-            <label htmlFor="workoutName" className="form-label fw-bold">
-              Workout Name
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="workoutName"
-              value={name}
-              onChange={(e) => setSchedule(e.target.value)}
-              placeholder="Enter workout name (e.g., Week 1, Upper Body Split)"
-              required
-            />
-          </div>
+        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h4 className="mb-0">{isEditing ? 'Edit' : 'Create'} Workout - Day {workoutDay}</h4>
+          <button
+            className="btn btn-outline-light btn-sm"
+            onClick={onCancel}
+            title="Cancel and go back"
+          >
+            ← Back
+          </button>
         </div>
         <div className="card-body">
           {/* Exercise Form - Using your existing ExerciseForm */}
@@ -219,7 +222,7 @@ const CreateWorkoutForm: React.FC<{ workoutName?: string }> = ({
               );
             })}
           </div>
-          <div className="d-flex justify-content-end gap-2">
+          <div className="d-flex justify-content-between">
             <button
               className="btn btn-outline-secondary"
               onClick={handleClearAll}
@@ -227,15 +230,21 @@ const CreateWorkoutForm: React.FC<{ workoutName?: string }> = ({
             >
               Clear All
             </button>
-            <button
-              className="btn btn-success"
-              onClick={handleSaveWorkout}
-              disabled={
-                !name.trim() || Object.keys(exerciseGroups).length === 0
-              }
-            >
-              Create Schedule
-            </button>
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-outline-secondary"
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={handleSaveWorkout}
+                disabled={Object.keys(exerciseGroups).length === 0}
+              >
+                {isEditing ? 'Update' : 'Save'} Workout
+              </button>
+            </div>
           </div>
         </div>
       </div>
