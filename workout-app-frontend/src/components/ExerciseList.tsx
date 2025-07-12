@@ -1,4 +1,5 @@
-import type {Exercise, Group} from "../types/Exercise.ts";
+import React from 'react';
+import type { Exercise, Group } from '../types/Exercise.ts';
 
 interface ExerciseListProps {
   group: Group;
@@ -7,11 +8,18 @@ interface ExerciseListProps {
   onEditExercise: (exerciseId: string) => void;
 }
 
-const ExerciseList: React.FC<ExerciseListProps> = ({ group, exercises, onRemoveExercise, onEditExercise }) => {
+const ExerciseList: React.FC<ExerciseListProps> = ({
+  group,
+  exercises,
+  onRemoveExercise,
+  onEditExercise,
+}) => {
   if (exercises.length === 0) {
     return (
       <div className="text-muted text-center py-3 border rounded bg-light">
-        <small>No exercises added yet. Use the form above to add your first exercise.</small>
+        <small>
+          No exercises added yet. Use the form above to add your first exercise.
+        </small>
       </div>
     );
   }
@@ -28,9 +36,21 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ group, exercises, onRemoveE
               <div className="flex-grow-1">
                 <div className="d-flex align-items-center gap-2 mb-1">
                   <h6 className="mb-0 fw-bold">{exercise.name}</h6>
-                  {exercise.sets && <span><strong>Sets:</strong> {exercise.sets}</span>}
-                  {exercise.reps && <span><strong>Reps:</strong> {exercise.reps}</span>}
-                  {exercise.weight && <span><strong>Weight:</strong> {exercise.weight}</span>}
+                  {exercise.sets && (
+                    <span>
+                      <strong>Sets:</strong> {exercise.sets}
+                    </span>
+                  )}
+                  {exercise.reps && (
+                    <span>
+                      <strong>Reps:</strong> {exercise.reps}
+                    </span>
+                  )}
+                  {exercise.weight && (
+                    <span>
+                      <strong>Weight:</strong> {exercise.weight}
+                    </span>
+                  )}
                 </div>
                 {exercise.notes && (
                   <div className="text-muted small">
@@ -41,6 +61,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ group, exercises, onRemoveE
 
               <div className="d-flex gap-1">
                 <button
+                  type="button"
                   className="btn btn-outline-secondary btn-sm"
                   onClick={() => exercise.id && onEditExercise(exercise.id)}
                   title="Edit exercise"
@@ -48,6 +69,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ group, exercises, onRemoveE
                   ✏️
                 </button>
                 <button
+                  type="button"
                   className="btn btn-outline-danger btn-sm"
                   onClick={() => exercise.id && onRemoveExercise(exercise.id)}
                   title="Remove exercise"

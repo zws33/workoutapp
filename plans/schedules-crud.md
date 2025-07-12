@@ -209,7 +209,7 @@ app.delete('/api/schedules/:name', authenticateUser, async (req, res) => {
   "details": [
     {
       "field": "name",
-      "message": "Schedule name is required"
+      "message": "Workout name is required"
     },
     {
       "field": "workouts",

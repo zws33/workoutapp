@@ -1,69 +1,103 @@
-import React, { useState, useCallback } from "react";
-import type {Exercise, Group} from "../types/Exercise";
+import React, { useState } from 'react';
+import type { Exercise, Group } from '../types/Exercise.ts';
 
 interface ExerciseFormProps {
   onSubmit: (exercise: Exercise) => void;
   initialExercise?: Exercise;
   isEditing?: boolean;
 }
-const defaultData: Exercise = {
-  group: "primary" as Group,
-  name: "",
-  sets: null,
+
+// Initial data for a new exercise
+const initialData: Exercise = {
+  group: 'primary' as Group,
+  name: '',
+  sets: 1,
   reps: null,
-  weight: "",
-  notes: "",
+  weight: null,
+  notes: null,
 };
+
 const ExerciseForm: React.FC<ExerciseFormProps> = ({
   onSubmit,
-  initialExercise = {...defaultData},
-  isEditing = false
+  initialExercise = { ...initialData },
+  isEditing = false,
 }) => {
-  const [exercise, setExercise] = useState<Exercise>(initialExercise);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  // State to manage validation errors
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  const handleChange = useCallback((
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-
-    setExercise((prev) => {
-      const newExercise = {
-        ...prev,
-        [name]:
-          name === "sets" || name === "reps"
-            ? value === ""
-              ? null
-              : parseInt(value, 10) || null
-            : value,
-      };
-      return newExercise;
-    });
-  }, [errors]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Validate form
-    const newErrors: {[key: string]: string} = {};
-    if (!exercise.name.trim()) {
+
+    const formData = new FormData(e.currentTarget);
+    const newErrors: { [key: string]: string } = {};
+
+    const name = (formData.get('name') as string)?.trim() || '';
+    const group = (formData.get('group') as Group) || 'primary';
+    const setsRaw = (formData.get('sets') as string)?.trim();
+    const repsRaw = (formData.get('reps') as string)?.trim();
+    const weight = (formData.get('weight') as string)?.trim() || null;
+    const notes = (formData.get('notes') as string)?.trim() || null;
+
+    // Validate Exercise Name
+    if (!name) {
       newErrors.name = 'Exercise name is required';
     }
-    
+
+    // Validate Sets
+    let sets: number = initialExercise.sets || 1;
+    if (!setsRaw) {
+      newErrors.sets = 'Sets is required.';
+    } else {
+      const parsedSets = parseInt(setsRaw, 10);
+      if (isNaN(parsedSets)) {
+        newErrors.sets = 'Sets must be a number.';
+      } else if (parsedSets < 1) {
+        newErrors.sets = 'Sets must be at least 1.';
+      }
+      sets = parsedSets; // Assign valid parsed sets
+    }
+
+    // Validate Reps (can be null or a number)
+    let reps: number | null = null;
+    if (repsRaw) {
+      // Only parse if reps input has a value
+      const parsedReps = parseInt(repsRaw, 10);
+      if (isNaN(parsedReps)) {
+        // If it's not a valid number, treat it as null as per original logic
+        reps = null;
+      } else {
+        reps = parsedReps;
+      }
+    }
+
+    // Update the errors state
+    setErrors(newErrors);
+
+    // If there are any errors, stop the submission
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      console.log('Validation errors:', newErrors);
       return;
     }
-    
-    onSubmit(exercise);
+
+    // Construct the Exercise object to submit
+    const submittedExercise: Exercise = {
+      // If editing, preserve the existing ID; otherwise, it will be undefined
+      ...(isEditing && initialExercise.id && { id: initialExercise.id }),
+      group,
+      name,
+      sets,
+      reps,
+      weight,
+      notes,
+    };
+
+    // Call the onSubmit prop with the validated exercise data
+    onSubmit(submittedExercise);
+
+    // If not in editing mode, reset the form fields and clear errors
     if (!isEditing) {
-      setExercise({...defaultData});
-      setErrors({});
+      e.currentTarget.reset(); // Resets all form elements to their initial values
+      setErrors({}); // Clear any previous validation errors
     }
   };
 
@@ -77,12 +111,12 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
           </label>
           <input
             type="text"
-            className={`form-control form-control-sm ${errors.name ? 'is-invalid' : ''}`}
+            className={`form-control form-control-sm ${
+              errors.name ? 'is-invalid' : ''
+            }`}
             id="name"
             name="name"
-            value={exercise.name}
-            onChange={handleChange}
-            required
+            defaultValue={initialExercise.name}
             placeholder="Exercise name"
             aria-label="Exercise name"
           />
@@ -96,8 +130,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
             className="form-select form-select-sm"
             id="group"
             name="group"
-            value={exercise.group}
-            onChange={handleChange}
+            defaultValue={initialExercise.group}
             aria-label="Exercise group category"
           >
             <option value="primary">Primary</option>
@@ -115,16 +148,20 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
             <span className="input-group-text fw-bold small">Sets</span>
             <input
               type="number"
-              className="form-control form-control-sm"
+              className={`form-control form-control-sm ${
+                errors.sets ? 'is-invalid' : ''
+              }`}
               id="sets"
               name="sets"
-              value={exercise.sets === null ? "" : exercise.sets}
-              onChange={handleChange}
+              defaultValue={initialExercise.sets ?? ''}
               placeholder="3"
               min="1"
               max="999"
               aria-label="Number of sets"
             />
+            {errors.sets && (
+              <div className="invalid-feedback">{errors.sets}</div>
+            )}
           </div>
         </div>
         <div className="col-4">
@@ -135,10 +172,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
               className="form-control form-control-sm"
               id="reps"
               name="reps"
-              value={exercise.reps === null ? "" : exercise.reps}
-              onChange={handleChange}
+              defaultValue={initialExercise.reps ?? ''}
               placeholder="10"
-              min="1"
+              min="0"
               max="999"
               aria-label="Number of repetitions"
             />
@@ -152,8 +188,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
               className="form-control form-control-sm"
               id="weight"
               name="weight"
-              value={exercise.weight}
-              onChange={handleChange}
+              defaultValue={initialExercise.weight ?? ''}
               placeholder="135 lbs"
               aria-label="Weight amount"
             />
@@ -172,8 +207,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
             className="form-control form-control-sm"
             id="notes"
             name="notes"
-            value={exercise.notes}
-            onChange={handleChange}
+            defaultValue={initialExercise.notes ?? ''}
             placeholder="Notes (optional)"
             aria-label="Exercise notes"
           />
