@@ -202,8 +202,8 @@ class WorkoutRepositoryImpl: WorkoutRepository {
         }
 
         do {
-            let response = try JSONDecoder().decode(
-                SchedulesResponse.self, from: data)
+            let response = try JSONDecoder().decode(SchedulesResponse.self, from: data)
+            AppLogger.info("\(response.data.count) schedules fetched")
             return response.data
         } catch {
             AppLogger.error(
