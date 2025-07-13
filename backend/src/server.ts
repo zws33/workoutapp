@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import morgan from 'morgan';
 import 'dotenv/config';
 import { GoogleSheetsService } from './googleSheetsService.js';
 import { authenticateUser } from './authenticate.js';
@@ -12,11 +13,25 @@ const PORT = process.env.PORT || 3000;
 
 // CORS configuration
 const corsOptions = {
-  origin: [
-    'http://localhost:5173', // Vite dev server
-    'http://localhost:3000', // Alternative dev port
-    'https://your-frontend-domain.com', // Replace with your production domain
-  ],
+  origin: (origin: any, callback: any) => {
+    // Allow requests with no origin (native mobile apps)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Allow specific web origins
+    const allowedOrigins = [
+      'http://localhost:5173', // Vite dev server
+      'http://localhost:3000', // Alternative dev port
+      'https://your-frontend-domain.com', // Replace with your production domain
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -24,6 +39,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.static('public'));
 

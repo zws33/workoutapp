@@ -28,6 +28,36 @@ enum AppLogger {
         logger(for: category).info("\(message)")
     }
     
+    /// Log HTTP request lifecycle events
+    static func httpRequest(
+        _ event: HTTPRequestEvent,
+        requestId: String,
+        url: String? = nil,
+        statusCode: Int? = nil,
+        duration: TimeInterval? = nil,
+        error: Error? = nil
+    ) {
+        var message = "[\(requestId)] \(event.description)"
+        
+        if let url = url {
+            message += " - \(url)"
+        }
+        
+        if let statusCode = statusCode {
+            message += " - Status: \(statusCode)"
+        }
+        
+        if let duration = duration {
+            message += " - Duration: \(String(format: "%.3f", duration))s"
+        }
+        
+        if let error = error {
+            networking.error("\(message) - Error: \(error.localizedDescription)")
+        } else {
+            networking.info("\(message)")
+        }
+    }
+    
     /// Log debugging information
     static func debug(_ message: String, category: LogCategory = .general) {
         logger(for: category).debug("\(message)")
@@ -73,4 +103,32 @@ enum LogCategory {
     case coreData
     case auth
     case ui
+}
+
+// MARK: - HTTP Request Events
+
+enum HTTPRequestEvent {
+    case requestStart
+    case authTokenRetrieved
+    case networkCallStarted
+    case responseReceived
+    case responseValidated
+    case decodingStarted
+    case decodingCompleted
+    case requestCompleted
+    case requestFailed
+    
+    var description: String {
+        switch self {
+        case .requestStart: return "Request started"
+        case .authTokenRetrieved: return "Auth token retrieved"
+        case .networkCallStarted: return "Network call started"
+        case .responseReceived: return "Response received"
+        case .responseValidated: return "Response validated"
+        case .decodingStarted: return "Decoding started"
+        case .decodingCompleted: return "Decoding completed"
+        case .requestCompleted: return "Request completed"
+        case .requestFailed: return "Request failed"
+        }
+    }
 }

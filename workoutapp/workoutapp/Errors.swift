@@ -12,6 +12,7 @@ enum NetworkError: Error {
     case requestFailed(Error)
     case transportError(Error)
     case invalidResponse
+    case httpError(Int)
     case noData
     case decodingFailed(Error)
 }

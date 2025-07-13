@@ -175,40 +175,67 @@ class WorkoutRepositoryImpl: WorkoutRepository {
     }
 
     private func fetchSchedules() async throws -> [Schedule] {
-        guard let url = URL(string: "\(baseURL)/api/schedules") else {
-            throw NetworkError.invalidURL(
-                "Failed to create URL for sheets endpoint")
+        let requestId = UUID().uuidString.prefix(8).uppercased()
+        let startTime = Date()
+        let urlString = "\(baseURL)/api/schedules"
+        
+        AppLogger.httpRequest(.requestStart, requestId: String(requestId), url: urlString)
+        
+        guard let url = URL(string: urlString) else {
+            AppLogger.httpRequest(.requestFailed, requestId: String(requestId), url: urlString, error: NetworkError.invalidURL("Failed to create URL"))
+            throw NetworkError.invalidURL("Failed to create URL for sheets endpoint")
         }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
 
-        let idToken = try await authManager.getIDToken()
-        request.addValue(
-            "Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+        do {
+            let idToken = try await authManager.getIDToken()
+            AppLogger.httpRequest(.authTokenRetrieved, requestId: String(requestId))
+            request.addValue("Bearer \(idToken)", forHTTPHeaderField: "Authorization")
+        } catch {
+            AppLogger.httpRequest(.requestFailed, requestId: String(requestId), error: error)
+            throw error
+        }
 
+        AppLogger.httpRequest(.networkCallStarted, requestId: String(requestId), url: urlString)
+        
         let (data, response): (Data, URLResponse)
         do {
             (data, response) = try await session.data(for: request)
+            AppLogger.httpRequest(.responseReceived, requestId: String(requestId), url: urlString)
         } catch {
-            AppLogger.error(
-                "Network request failed", error: error, category: .networking)
+            AppLogger.httpRequest(.requestFailed, requestId: String(requestId), url: urlString, error: error)
             throw NetworkError.transportError(error)
         }
 
-        guard let httpResponse = response as? HTTPURLResponse,
-            (200...299).contains(httpResponse.statusCode)
-        else {
+        guard let httpResponse = response as? HTTPURLResponse else {
+            AppLogger.httpRequest(.requestFailed, requestId: String(requestId), error: NetworkError.invalidResponse)
             throw NetworkError.invalidResponse
         }
+        
+        AppLogger.httpRequest(.responseReceived, requestId: String(requestId), url: urlString, statusCode: httpResponse.statusCode)
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let statusError = NetworkError.httpError(httpResponse.statusCode)
+            AppLogger.httpRequest(.requestFailed, requestId: String(requestId), statusCode: httpResponse.statusCode, error: statusError)
+            throw statusError
+        }
+        
+        AppLogger.httpRequest(.responseValidated, requestId: String(requestId), statusCode: httpResponse.statusCode)
+        AppLogger.httpRequest(.decodingStarted, requestId: String(requestId))
 
         do {
             let response = try JSONDecoder().decode(SchedulesResponse.self, from: data)
-            AppLogger.info("\(response.data.count) schedules fetched")
+            AppLogger.httpRequest(.decodingCompleted, requestId: String(requestId))
+            
+            let duration = Date().timeIntervalSince(startTime)
+            AppLogger.httpRequest(.requestCompleted, requestId: String(requestId), duration: duration)
+            AppLogger.info("\(response.data.count) schedules fetched", category: .networking)
+            
             return response.data
         } catch {
-            AppLogger.error(
-                "Error decoding response data", error: error,
-                category: .networking)
+            AppLogger.httpRequest(.requestFailed, requestId: String(requestId), error: error)
             throw NetworkError.decodingFailed(error)
         }
     }
