@@ -33,8 +33,11 @@ docker push $LATEST_TAG
 echo "Deploying to Google Cloud Run with image: $TAG"
 gcloud run deploy workout-app \
   --image $TAG \
+  --network default \
+  --subnet default\
   --region us-east1 \
   --platform managed \
   --allow-unauthenticated \
+  --vpc-egress all-traffic
 
 echo "Deployment complete!"
