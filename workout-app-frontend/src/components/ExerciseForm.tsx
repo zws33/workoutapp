@@ -63,7 +63,7 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
       // Only parse if reps input has a value
       const parsedReps = parseInt(repsRaw, 10);
       if (isNaN(parsedReps)) {
-        // If it's not a valid number, treat it as null as per original logic
+        // Invalid reps values are treated as null to indicate no input or invalid input
         reps = null;
       } else {
         reps = parsedReps;
