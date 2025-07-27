@@ -53,8 +53,9 @@ const ExerciseForm: React.FC<ExerciseFormProps> = ({
         newErrors.sets = 'Sets must be a number.';
       } else if (parsedSets < 1) {
         newErrors.sets = 'Sets must be at least 1.';
+      } else {
+        sets = parsedSets; // Assign valid parsed sets
       }
-      sets = parsedSets; // Assign valid parsed sets
     }
 
     // Validate Reps (can be null or a number)
