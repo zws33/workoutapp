@@ -34,7 +34,7 @@ echo "Deploying to Google Cloud Run with image: $TAG"
 gcloud run deploy workout-app \
   --image $TAG \
   --network default \
-  --subnet default\
+  --subnet default \
   --region us-east1 \
   --platform managed \
   --allow-unauthenticated \
