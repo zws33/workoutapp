@@ -1,4 +1,4 @@
-import { createHash as hash } from 'crypto';
+import { createHash as hash } from "crypto";
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -9,5 +9,5 @@ export function getErrorMessage(error: unknown): string {
 
 export function createHash(dataToHash: Object) {
   const json = JSON.stringify(dataToHash);
-  return hash('sha1').update(json).digest('hex');
+  return hash("sha1").update(json).digest("hex");
 }

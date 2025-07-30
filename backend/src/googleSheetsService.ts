@@ -1,4 +1,4 @@
-import {google, sheets_v4} from 'googleapis';
+import { google, sheets_v4 } from "googleapis";
 import Schema$Sheet = sheets_v4.Schema$Sheet;
 
 export class GoogleSheetsService {
@@ -6,13 +6,13 @@ export class GoogleSheetsService {
   private readonly spreadsheetId: string;
 
   constructor(spreadsheetId: string) {
-    this.sheets = google.sheets('v4');
+    this.sheets = google.sheets("v4");
     this.spreadsheetId = spreadsheetId;
     const auth = new google.auth.GoogleAuth({
-      keyFile: './secrets/service-account.json',
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      keyFile: "./secrets/service-account.json",
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
-    this.sheets = google.sheets({version: 'v4', auth});
+    this.sheets = google.sheets({ version: "v4", auth });
   }
 
   /**
@@ -31,7 +31,7 @@ export class GoogleSheetsService {
     const rows = response.data.values;
 
     if (!rows || rows.length === 0) {
-      throw new Error('No data found in the sheet');
+      throw new Error("No data found in the sheet");
     }
     console.log(`Fetched ${rows.length} rows from ${sheetName}`);
 
@@ -47,9 +47,11 @@ export class GoogleSheetsService {
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
-      return response.data.sheets!.map((sheet: Schema$Sheet) => sheet.properties!.title!);
+      return response.data.sheets!.map(
+        (sheet: Schema$Sheet) => sheet.properties!.title!,
+      );
     } catch (error) {
-      console.error('Error getting sheet names:', error);
+      console.error("Error getting sheet names:", error);
       throw error;
     }
   }

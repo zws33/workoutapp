@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
@@ -11,4 +11,4 @@ services:
       - NODE_ENV=development
       - API_URL=http://localhost:3000
       - GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
-    command: [ "node", "dist/server.js" ]
+    command: ["node", "dist/server.js"]

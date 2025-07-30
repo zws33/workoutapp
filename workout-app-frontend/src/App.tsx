@@ -1,4 +1,3 @@
-import React from 'react';
 import ScheduleForm from './components/ScheduleForm.tsx';
 
 function App() {

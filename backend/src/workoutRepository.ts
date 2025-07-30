@@ -1,4 +1,4 @@
-import {GoogleSheetsService} from './googleSheetsService.js';
+import { GoogleSheetsService } from "./googleSheetsService.js";
 import {
   addExercise,
   createExercise,
@@ -8,32 +8,30 @@ import {
   Exercise,
   Group,
   Schedule,
-  Workout, WorkoutData,
-} from './models.js';
-import cron from 'node-cron';
-import {WorkoutDb} from './workoutDb.js';
+  Workout,
+  WorkoutData,
+} from "./models.js";
+import cron from "node-cron";
+import { WorkoutDb } from "./workoutDb.js";
 
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;
   private db: WorkoutDb;
 
-  constructor(
-    googleSheetsService: GoogleSheetsService,
-    db: WorkoutDb
-  ) {
+  constructor(googleSheetsService: GoogleSheetsService, db: WorkoutDb) {
     this.googleSheetsService = googleSheetsService;
     this.db = db;
   }
 
   startCronJob(): void {
-    cron.schedule('0 0 * * *', async () => {
-      console.log('Running cron job to fetch workout data...');
+    cron.schedule("0 0 * * *", async () => {
+      console.log("Running cron job to fetch workout data...");
       await this.syncWorkoutData();
     });
   }
 
   async syncWorkoutData() {
-    console.log('Syncing workout data...');
+    console.log("Syncing workout data...");
     try {
       const sheets = await this.googleSheetsService.getSheetNames();
       await Promise.all(
@@ -41,16 +39,16 @@ export class WorkoutRepository {
           const data = await this.googleSheetsService.getSheetData(sheetName);
           const schedule = createScheduleFromRows(sheetName, data);
           await this.db.saveSchedule(schedule);
-        })
+        }),
       );
     } catch (error) {
-      console.error('Error during cron job:', error);
+      console.error("Error during cron job:", error);
     }
   }
 
   async getScheduleByName(sheetName: string): Promise<Schedule> {
     if (!sheetName?.trim()) {
-      throw new Error('Sheet name is required');
+      throw new Error("Sheet name is required");
     }
 
     const schedule = await this.db.getScheduleByName(sheetName);
@@ -65,25 +63,30 @@ export class WorkoutRepository {
     return await this.db.getSchedules();
   }
 
-  async createSchedule(scheduleData: { name: string; workouts: any[] }): Promise<Schedule> {
+  async createSchedule(scheduleData: {
+    name: string;
+    workouts: any[];
+  }): Promise<Schedule> {
     // Validate input
     if (!scheduleData.name?.trim()) {
-      throw new Error('Schedule name is required');
+      throw new Error("Schedule name is required");
     }
-    
+
     if (!scheduleData.workouts || scheduleData.workouts.length === 0) {
-      throw new Error('At least one workout is required');
+      throw new Error("At least one workout is required");
     }
 
     // Check if schedule already exists
     try {
       const existing = await this.db.getScheduleByName(scheduleData.name);
       if (existing) {
-        throw new Error(`Schedule with name '${scheduleData.name}' already exists`);
+        throw new Error(
+          `Schedule with name '${scheduleData.name}' already exists`,
+        );
       }
     } catch (error) {
       // If error is not about not finding the schedule, re-throw
-      if (error instanceof Error && !error.message.includes('does not exist')) {
+      if (error instanceof Error && !error.message.includes("does not exist")) {
         throw error;
       }
     }
@@ -92,22 +95,23 @@ export class WorkoutRepository {
     const workouts: Workout[] = scheduleData.workouts.map((workoutData) => {
       // Validate workout structure
       if (!workoutData.day || !workoutData.exercises) {
-        throw new Error('Each workout must have a day and exercises');
+        throw new Error("Each workout must have a day and exercises");
       }
 
       // Transform exercises to use backend ID generation
       const transformedExercises: Partial<Record<Group, Exercise[]>> = {};
-      
+
       for (const [group, exercises] of Object.entries(workoutData.exercises)) {
         if (exercises && Array.isArray(exercises)) {
-          transformedExercises[group as Group] = exercises.map((exercise: any) => 
-            createExercise(
-              exercise.name,
-              exercise.sets,
-              exercise.reps || undefined,
-              exercise.weight || undefined,
-              exercise.notes || undefined
-            )
+          transformedExercises[group as Group] = exercises.map(
+            (exercise: any) =>
+              createExercise(
+                exercise.name,
+                exercise.sets,
+                exercise.reps || undefined,
+                exercise.weight || undefined,
+                exercise.notes || undefined,
+              ),
           );
         }
       }
@@ -117,7 +121,7 @@ export class WorkoutRepository {
 
     const schedule = createSchedule(scheduleData.name, workouts);
     await this.db.saveSchedule(schedule);
-    
+
     return schedule;
   }
 }
@@ -142,12 +146,14 @@ export function createScheduleFromRows(name: string, rows: string[][]) {
       parseInt(sets) || 0,
       parseInt(reps) || undefined,
       weight,
-      notes
+      notes,
     );
 
     addExercise(workout, group.toLowerCase() as Group, exercise);
   });
 
-  let workouts: Workout[] = workoutData.map((data) => createWorkout(data.day, data.exercises));
+  let workouts: Workout[] = workoutData.map((data) =>
+    createWorkout(data.day, data.exercises),
+  );
   return createSchedule(name, workouts);
 }

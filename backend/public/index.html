@@ -1,60 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Workout App</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 0 20px;
+      }
+      button,
+      select {
+        padding: 10px 20px;
+        margin: 10px 0;
+        width: 100%;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        cursor: pointer;
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin: 5px 0;
+        text-align: center;
+      }
+      li:hover {
+        background-color: #f0f0f0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f4f4f4;
+      }
+      @media (max-width: 600px) {
+        table,
+        th,
+        td {
+          font-size: 14px;
         }
-        button, select {
-            padding: 10px 20px;
-            margin: 10px 0;
-            width: 100%;
+        button,
+        select {
+          font-size: 14px;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            cursor: pointer;
-            padding: 10px;
-            border: 1px solid #ddd;
-            margin: 5px 0;
-            text-align: center;
-        }
-        li:hover {
-            background-color: #f0f0f0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        @media (max-width: 600px) {
-            table, th, td {
-                font-size: 14px;
-            }
-            button, select {
-                font-size: 14px;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Workout App</h1>
-    
+
     <button onclick="startAuth()">Start Authentication</button>
     <button onclick="listSheets()">List Sheets</button>
 
@@ -63,28 +68,28 @@
 
     <h3>Filter Workouts:</h3>
     <select id="dayFilter" onchange="filterWorkouts()">
-        <option value="all">All Days</option>
-        <option value="UPPER">Upper</option>
-        <option value="LOWER">Lower</option>
-        <option value="CORE">Core</option>
+      <option value="all">All Days</option>
+      <option value="UPPER">Upper</option>
+      <option value="LOWER">Lower</option>
+      <option value="CORE">Core</option>
     </select>
 
     <h3>Workouts:</h3>
     <table id="responseTable">
-        <thead>
-            <tr>
-                <th>Exercise</th>
-                <th>Sets</th>
-                <th>Reps</th>
-                <th>Weight</th>
-                <th>Notes</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Workout data will be inserted here -->
-        </tbody>
+      <thead>
+        <tr>
+          <th>Exercise</th>
+          <th>Sets</th>
+          <th>Reps</th>
+          <th>Weight</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Workout data will be inserted here -->
+      </tbody>
     </table>
 
     <script src="index.js"></script>
-</body>
+  </body>
 </html>
