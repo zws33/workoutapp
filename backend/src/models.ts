@@ -13,7 +13,7 @@ export interface Exercise {
 
 export interface Workout {
   id: string;
-  day: string;
+  name: string;
   exercises: Partial<Record<Group, Exercise[]>>;
 }
 
@@ -24,21 +24,21 @@ export interface Schedule {
 }
 
 export function createWorkout(
-  day: string,
+  name: string,
   exercises: Partial<Record<Group, Exercise[]>>,
 ): Workout {
   return {
-    id: createHash({ day, exercises }),
-    day,
+    id: createHash({ name: name, exercises }),
+    name: name,
     exercises,
   };
 }
 
 export type WorkoutData = Omit<Workout, "id">;
 
-export function createWorkoutData(day: string): WorkoutData {
+export function createWorkoutData(name: string): WorkoutData {
   return {
-    day,
+    name: name,
     exercises: {},
   };
 }

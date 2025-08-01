@@ -1,4 +1,4 @@
-import { GoogleSheetsService } from "./googleSheetsService.js";
+import { GoogleSheetsService } from './googleSheetsService.js';
 import {
   addExercise,
   createExercise,
@@ -10,9 +10,9 @@ import {
   Schedule,
   Workout,
   WorkoutData,
-} from "./models.js";
-import cron from "node-cron";
-import { WorkoutDb } from "./workoutDb.js";
+} from './models.js';
+import cron from 'node-cron';
+import { WorkoutDb } from './workoutDb.js';
 
 export class WorkoutRepository {
   private googleSheetsService: GoogleSheetsService;
@@ -24,14 +24,14 @@ export class WorkoutRepository {
   }
 
   startCronJob(): void {
-    cron.schedule("0 0 * * *", async () => {
-      console.log("Running cron job to fetch workout data...");
+    cron.schedule('0 0 * * *', async () => {
+      console.log('Running cron job to fetch workout data...');
       await this.syncWorkoutData();
     });
   }
 
   async syncWorkoutData() {
-    console.log("Syncing workout data...");
+    console.log('Syncing workout data...');
     try {
       const sheets = await this.googleSheetsService.getSheetNames();
       await Promise.all(
@@ -39,16 +39,16 @@ export class WorkoutRepository {
           const data = await this.googleSheetsService.getSheetData(sheetName);
           const schedule = createScheduleFromRows(sheetName, data);
           await this.db.saveSchedule(schedule);
-        }),
+        })
       );
     } catch (error) {
-      console.error("Error during cron job:", error);
+      console.error('Error during cron job:', error);
     }
   }
 
   async getScheduleByName(sheetName: string): Promise<Schedule> {
     if (!sheetName?.trim()) {
-      throw new Error("Sheet name is required");
+      throw new Error('Sheet name is required');
     }
 
     const schedule = await this.db.getScheduleByName(sheetName);
@@ -69,11 +69,11 @@ export class WorkoutRepository {
   }): Promise<Schedule> {
     // Validate input
     if (!scheduleData.name?.trim()) {
-      throw new Error("Schedule name is required");
+      throw new Error('Schedule name is required');
     }
 
     if (!scheduleData.workouts || scheduleData.workouts.length === 0) {
-      throw new Error("At least one workout is required");
+      throw new Error('At least one workout is required');
     }
 
     // Check if schedule already exists
@@ -81,12 +81,12 @@ export class WorkoutRepository {
       const existing = await this.db.getScheduleByName(scheduleData.name);
       if (existing) {
         throw new Error(
-          `Schedule with name '${scheduleData.name}' already exists`,
+          `Schedule with name '${scheduleData.name}' already exists`
         );
       }
     } catch (error) {
       // If error is not about not finding the schedule, re-throw
-      if (error instanceof Error && !error.message.includes("does not exist")) {
+      if (error instanceof Error && !error.message.includes('does not exist')) {
         throw error;
       }
     }
@@ -94,8 +94,8 @@ export class WorkoutRepository {
     // Transform workouts and create schedule
     const workouts: Workout[] = scheduleData.workouts.map((workoutData) => {
       // Validate workout structure
-      if (!workoutData.day || !workoutData.exercises) {
-        throw new Error("Each workout must have a day and exercises");
+      if (!workoutData.name || !workoutData.exercises) {
+        throw new Error('Each workout must have a day and exercises');
       }
 
       // Transform exercises to use backend ID generation
@@ -110,13 +110,13 @@ export class WorkoutRepository {
                 exercise.sets,
                 exercise.reps || undefined,
                 exercise.weight || undefined,
-                exercise.notes || undefined,
-              ),
+                exercise.notes || undefined
+              )
           );
         }
       }
 
-      return createWorkout(workoutData.day, transformedExercises);
+      return createWorkout(workoutData.name, transformedExercises);
     });
 
     const schedule = createSchedule(scheduleData.name, workouts);
@@ -132,12 +132,12 @@ export function createScheduleFromRows(name: string, rows: string[][]) {
   let days = new Set(rows.slice(1).map((row) => row[0]));
 
   rows.slice(1).forEach((row) => {
-    const [day, group, exerciseName, sets, reps, weight, notes] = row;
+    const [name, group, exerciseName, sets, reps, weight, notes] = row;
 
-    let workout = workoutData.find((w) => w.day === day);
+    let workout = workoutData.find((w) => w.name === name);
 
     if (!workout) {
-      workout = createWorkoutData(day);
+      workout = createWorkoutData(name);
       workoutData.push(workout);
     }
 
@@ -146,14 +146,14 @@ export function createScheduleFromRows(name: string, rows: string[][]) {
       parseInt(sets) || 0,
       parseInt(reps) || undefined,
       weight,
-      notes,
+      notes
     );
 
     addExercise(workout, group.toLowerCase() as Group, exercise);
   });
 
   let workouts: Workout[] = workoutData.map((data) =>
-    createWorkout(data.day, data.exercises),
+    createWorkout(data.name, data.exercises)
   );
   return createSchedule(name, workouts);
 }

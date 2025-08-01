@@ -1,9 +1,9 @@
-import { MongoClient } from "mongodb";
-import { Schedule } from "./models.js";
+import { MongoClient } from 'mongodb';
+import { Schedule } from './models.js';
 
-const WORKOUTS_COLLECTION = "workouts";
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017";
-const DB_NAME = process.env.MONGODB_DB_NAME || "workout-app";
+const WORKOUTS_COLLECTION = 'workouts';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const DB_NAME = process.env.MONGODB_DB_NAME || 'workout-app';
 
 let client: MongoClient = new MongoClient(MONGODB_URI);
 let schedulesCollection = client
@@ -17,8 +17,13 @@ export const getWorkoutDb = (): WorkoutDb => {
       let result = await schedulesCollection.replaceOne(
         { id: schedule.id },
         schedule,
-        { upsert: true },
+        { upsert: true }
       );
+      if (result.upsertedCount > 0) {
+        console.log(`Inserted new schedule with id: ${result.upsertedId}`);
+      } else {
+        console.log(`Updated existing schedule with id: ${schedule.id}`);
+      }
     },
     getScheduleByName: async (name: string) => {
       const schedule = await schedulesCollection.findOne({ name });
