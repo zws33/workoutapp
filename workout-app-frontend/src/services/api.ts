@@ -1,8 +1,9 @@
-import type { Schedule } from '../types/Exercise.ts';
+import type { Schedule } from '../types/Types.ts';
 
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-url.com' // Replace with actual production URL
-  : 'http://localhost:3000';
+const API_BASE_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://your-backend-url.com' // Replace with actual production URL
+    : 'http://localhost:3000';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -27,7 +28,7 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -41,7 +42,7 @@ class ApiService {
     if (token) {
       config.headers = {
         ...config.headers,
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       };
     }
 
@@ -50,7 +51,9 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          data.error || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
 
       return data;
@@ -64,8 +67,8 @@ class ApiService {
   private transformScheduleForBackend(schedule: Schedule): any {
     return {
       name: schedule.name,
-      workouts: schedule.workouts.map(workout => ({
-        day: `Day ${workout.day}`, // Convert number to string format expected by backend
+      workouts: schedule.workouts.map((workout) => ({
+        day: `Day ${workout.name}`, // Convert number to string format expected by backend
         exercises: workout.exercises,
       })),
     };
@@ -85,26 +88,35 @@ class ApiService {
   }
 
   async getSchedules(): Promise<Schedule[]> {
-    const response = await this.request<ApiResponse<Schedule[]>>('/api/schedules');
+    const response = await this.request<ApiResponse<Schedule[]>>(
+      '/api/schedules'
+    );
     if (response.success && response.data) {
-      return response.data.map(schedule => this.transformScheduleFromBackend(schedule));
+      return response.data.map((schedule) =>
+        this.transformScheduleFromBackend(schedule)
+      );
     }
     throw new Error(response.error || 'Failed to fetch schedules');
   }
 
   async getScheduleByName(name: string): Promise<Schedule> {
     const encodedName = encodeURIComponent(name);
-    const response = await this.request<Schedule>(`/api/schedules/${encodedName}`);
+    const response = await this.request<Schedule>(
+      `/api/schedules/${encodedName}`
+    );
     return this.transformScheduleFromBackend(response);
   }
 
   async createSchedule(schedule: Schedule): Promise<Schedule> {
     const backendFormat = this.transformScheduleForBackend(schedule);
-    
-    const response = await this.request<ApiResponse<Schedule>>('/api/schedules', {
-      method: 'POST',
-      body: JSON.stringify(backendFormat),
-    });
+
+    const response = await this.request<ApiResponse<Schedule>>(
+      '/api/schedules',
+      {
+        method: 'POST',
+        body: JSON.stringify(backendFormat),
+      }
+    );
 
     if (response.success && response.data) {
       return this.transformScheduleFromBackend(response.data);
@@ -115,11 +127,14 @@ class ApiService {
   async updateSchedule(name: string, schedule: Schedule): Promise<Schedule> {
     const encodedName = encodeURIComponent(name);
     const backendFormat = this.transformScheduleForBackend(schedule);
-    
-    const response = await this.request<ApiResponse<Schedule>>(`/api/schedules/${encodedName}`, {
-      method: 'PUT',
-      body: JSON.stringify(backendFormat),
-    });
+
+    const response = await this.request<ApiResponse<Schedule>>(
+      `/api/schedules/${encodedName}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(backendFormat),
+      }
+    );
 
     if (response.success && response.data) {
       return this.transformScheduleFromBackend(response.data);
@@ -129,9 +144,12 @@ class ApiService {
 
   async deleteSchedule(name: string): Promise<void> {
     const encodedName = encodeURIComponent(name);
-    const response = await this.request<ApiResponse<void>>(`/api/schedules/${encodedName}`, {
-      method: 'DELETE',
-    });
+    const response = await this.request<ApiResponse<void>>(
+      `/api/schedules/${encodedName}`,
+      {
+        method: 'DELETE',
+      }
+    );
 
     if (!response.success) {
       throw new Error(response.error || 'Failed to delete schedule');

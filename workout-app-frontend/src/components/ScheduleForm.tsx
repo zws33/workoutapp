@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Schedule, Workout } from '../types/Exercise.ts';
+import type { Schedule, Workout } from '../types/Types.ts';
 import CreateWorkoutForm from './CreateWorkoutForm.tsx';
 import { apiService } from '../services/api.ts';
 
@@ -8,13 +8,13 @@ const ScheduleForm: React.FC = () => {
     name: '',
     workouts: [],
   });
-  const [activeWorkoutDay, setActiveWorkoutDay] = useState<number | null>(null);
+  const [activeWorkoutDay, setActiveWorkout] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleScheduleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSchedule(prev => ({
+    setSchedule((prev) => ({
       ...prev,
       name: e.target.value,
     }));
@@ -24,32 +24,44 @@ const ScheduleForm: React.FC = () => {
   };
 
   const handleAddWorkout = () => {
-    const newDay = schedule.workouts.length + 1;
-    setActiveWorkoutDay(newDay);
+    setActiveWorkout('');
   };
 
   const handleSaveWorkout = (workout: Workout) => {
-    setSchedule(prev => ({
-      ...prev,
-      workouts: [...prev.workouts, workout],
-    }));
-    setActiveWorkoutDay(null);
+    setSchedule((prev) => {
+      const isEditing = prev.workouts.some((w) => w.name === activeWorkoutDay);
+
+      if (isEditing) {
+        // Update existing workout
+        return {
+          ...prev,
+          workouts: prev.workouts.map((w) =>
+            w.name === activeWorkoutDay ? workout : w
+          ),
+        };
+      } else {
+        // Add new workout
+        return {
+          ...prev,
+          workouts: [...prev.workouts, workout],
+        };
+      }
+    });
+    setActiveWorkout(null);
   };
 
   const handleCancelWorkout = () => {
-    setActiveWorkoutDay(null);
+    setActiveWorkout(null);
   };
 
-  const handleEditWorkout = (day: number) => {
-    setActiveWorkoutDay(day);
+  const handleEditWorkout = (name: string) => {
+    setActiveWorkout(name);
   };
 
-  const handleDeleteWorkout = (day: number) => {
-    setSchedule(prev => ({
+  const handleDeleteWorkout = (name: string) => {
+    setSchedule((prev) => ({
       ...prev,
-      workouts: prev.workouts
-        .filter(w => w.day !== day)
-        .map((w, index) => ({ ...w, day: index + 1 })),
+      workouts: prev.workouts.filter((w) => w.name !== name),
     }));
   };
 
@@ -70,8 +82,10 @@ const ScheduleForm: React.FC = () => {
 
     try {
       const createdSchedule = await apiService.createSchedule(schedule);
-      setSuccessMessage(`Schedule "${createdSchedule.name}" created successfully!`);
-      
+      setSuccessMessage(
+        `Schedule "${createdSchedule.name}" created successfully!`
+      );
+
       // Reset form after successful creation
       setSchedule({
         name: '',
@@ -79,7 +93,11 @@ const ScheduleForm: React.FC = () => {
       });
     } catch (error) {
       console.error('Error creating schedule:', error);
-      setError(error instanceof Error ? error.message : 'Failed to create schedule. Please try again.');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to create schedule. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -87,14 +105,14 @@ const ScheduleForm: React.FC = () => {
 
   const getCurrentWorkout = (): Workout | undefined => {
     if (activeWorkoutDay === null) return undefined;
-    return schedule.workouts.find(w => w.day === activeWorkoutDay);
+    return schedule.workouts.find((w) => w.name === activeWorkoutDay);
   };
 
   if (activeWorkoutDay !== null) {
     return (
       <CreateWorkoutForm
         initialWorkout={getCurrentWorkout()}
-        workoutDay={activeWorkoutDay}
+        initialWorkoutName={activeWorkoutDay}
         onSave={handleSaveWorkout}
         onCancel={handleCancelWorkout}
         isEditing={getCurrentWorkout() !== undefined}
@@ -108,7 +126,7 @@ const ScheduleForm: React.FC = () => {
         <div className="card-header bg-primary text-white">
           <h4 className="mb-0">Create Workout Schedule</h4>
         </div>
-        
+
         <div className="card-body border-bottom">
           {error && (
             <div className="alert alert-danger" role="alert">
@@ -157,21 +175,21 @@ const ScheduleForm: React.FC = () => {
           ) : (
             <div className="row g-3">
               {schedule.workouts.map((workout) => (
-                <div key={workout.day} className="col-md-6 col-lg-4">
+                <div key={workout.name} className="col-md-6 col-lg-4">
                   <div className="card h-100 border">
                     <div className="card-header bg-light d-flex justify-content-between align-items-center">
-                      <h6 className="mb-0 fw-bold">Day {workout.day}</h6>
+                      <h6 className="mb-0 fw-bold">Day {workout.name}</h6>
                       <div className="btn-group btn-group-sm">
                         <button
                           className="btn btn-outline-secondary"
-                          onClick={() => handleEditWorkout(workout.day)}
+                          onClick={() => handleEditWorkout(workout.name)}
                           title="Edit workout"
                         >
                           ✏️
                         </button>
                         <button
                           className="btn btn-outline-danger"
-                          onClick={() => handleDeleteWorkout(workout.day)}
+                          onClick={() => handleDeleteWorkout(workout.name)}
                           title="Delete workout"
                         >
                           🗑️
@@ -179,22 +197,24 @@ const ScheduleForm: React.FC = () => {
                       </div>
                     </div>
                     <div className="card-body">
-                      {Object.entries(workout.exercises).map(([group, exercises]) => (
-                        <div key={group} className="mb-2">
-                          <small className="fw-bold text-capitalize text-muted">
-                            {group}:
-                          </small>
-                          <ul className="list-unstyled mb-0 ms-2">
-                            {exercises?.map((exercise) => (
-                              <li key={exercise.id} className="small">
-                                {exercise.name}
-                                {exercise.sets && ` - ${exercise.sets} sets`}
-                                {exercise.reps && ` × ${exercise.reps}`}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                      {Object.entries(workout.exercises).map(
+                        ([group, exercises]) => (
+                          <div key={group} className="mb-2">
+                            <small className="fw-bold text-capitalize text-muted">
+                              {group}:
+                            </small>
+                            <ul className="list-unstyled mb-0 ms-2">
+                              {exercises?.map((exercise) => (
+                                <li key={exercise.id} className="small">
+                                  {exercise.name}
+                                  {exercise.sets && ` - ${exercise.sets} sets`}
+                                  {exercise.reps && ` × ${exercise.reps}`}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )
+                      )}
                     </div>
                   </div>
                 </div>
@@ -206,11 +226,19 @@ const ScheduleForm: React.FC = () => {
             <button
               className="btn btn-success"
               onClick={handleSaveSchedule}
-              disabled={isLoading || !schedule.name.trim() || schedule.workouts.length === 0}
+              disabled={
+                isLoading ||
+                !schedule.name.trim() ||
+                schedule.workouts.length === 0
+              }
             >
               {isLoading ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
                   Creating...
                 </>
               ) : (

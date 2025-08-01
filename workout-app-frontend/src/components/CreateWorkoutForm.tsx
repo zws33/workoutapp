@@ -1,5 +1,10 @@
 import React, { useReducer, useState } from 'react';
-import type { Exercise, Group, ExerciseGroups, Workout } from '../types/Exercise.ts';
+import type {
+  Exercise,
+  Group,
+  ExerciseGroups,
+  Workout,
+} from '../types/Types.ts';
 import ExerciseForm from './ExerciseForm.tsx';
 import ExerciseList from './ExerciseList.tsx';
 
@@ -79,7 +84,7 @@ const groupOrder: Group[] = ['primary', 'secondary', 'core', 'cardio'];
 
 interface CreateWorkoutFormProps {
   initialWorkout?: Workout;
-  workoutDay: number;
+  initialWorkoutName: string;
   onSave: (workout: Workout) => void;
   onCancel: () => void;
   isEditing?: boolean;
@@ -87,7 +92,7 @@ interface CreateWorkoutFormProps {
 
 const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
   initialWorkout,
-  workoutDay,
+  initialWorkoutName,
   onSave,
   onCancel,
   isEditing = false,
@@ -99,7 +104,7 @@ const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(
     null
   );
-
+  const [workoutName, setWorkoutName] = useState(initialWorkoutName);
   const handleAddExercise = (newExercise: Exercise): void => {
     if (editingExerciseId) {
       const updatedExercise: Exercise = {
@@ -146,7 +151,7 @@ const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
 
     const workout: Workout = {
       id: initialWorkout?.id,
-      day: workoutDay,
+      name: workoutName.trim() || 'New Workout',
       exercises: exerciseGroups,
     };
 
@@ -158,11 +163,13 @@ const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
     // Reset to empty state
     Object.keys(exerciseGroups).forEach(() => {
       // Clear all exercises by removing them one by one
-      Object.values(exerciseGroups).flat().forEach(exercise => {
-        if (exercise.id) {
-          dispatch({ type: 'remove', exerciseId: exercise.id });
-        }
-      });
+      Object.values(exerciseGroups)
+        .flat()
+        .forEach((exercise) => {
+          if (exercise.id) {
+            dispatch({ type: 'remove', exerciseId: exercise.id });
+          }
+        });
     });
   };
 
@@ -180,7 +187,19 @@ const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
     <div className="container py-4" style={{ maxWidth: '800px' }}>
       <div className="card shadow-sm">
         <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-          <h4 className="mb-0">{isEditing ? 'Edit' : 'Create'} Workout - Day {workoutDay}</h4>
+          <div className="d-flex align-items-center gap-2">
+            <h4 className="mb-0">{isEditing ? 'Edit' : 'Create'} Workout -</h4>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              style={{ width: 200, display: 'inline-block' }}
+              value={workoutName}
+              onChange={(e) => {
+                setWorkoutName(e.target.value);
+              }}
+              placeholder="Workout Name"
+            />
+          </div>
           <button
             className="btn btn-outline-light btn-sm"
             onClick={onCancel}
@@ -231,10 +250,7 @@ const CreateWorkoutForm: React.FC<CreateWorkoutFormProps> = ({
               Clear All
             </button>
             <div className="d-flex gap-2">
-              <button
-                className="btn btn-outline-secondary"
-                onClick={onCancel}
-              >
+              <button className="btn btn-outline-secondary" onClick={onCancel}>
                 Cancel
               </button>
               <button

@@ -1,6 +1,6 @@
 export interface Exercise {
   id?: string;
-  group: Group
+  group: Group;
   name: string;
   sets: number;
   reps: number | null;
@@ -14,7 +14,7 @@ export type ExerciseGroups = Partial<Record<Group, Exercise[]>>;
 
 export interface Workout {
   id?: string;
-  day: number;
+  name: string;
   exercises: ExerciseGroups;
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Exercise, Group } from '../types/Exercise.ts';
+import type { Exercise, Group } from '../types/Types.ts';
 
 interface ExerciseFormProps {
   onSubmit: (exercise: Exercise) => void;
