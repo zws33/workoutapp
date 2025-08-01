@@ -52,7 +52,7 @@ extension ScheduleEntity {
         
         // Convert WorkoutEntity to Workout
         if let workoutEntities = self.workouts?.allObjects as? [WorkoutEntity] {
-            for workoutEntity in workoutEntities.sorted(by:{ $0.day! < $1.day! }) {
+            for workoutEntity in workoutEntities.sorted(by:{ $0.name! < $1.name! }) {
                 let workout = try workoutEntity.toWorkout()
                 workouts.append(workout)
             }
@@ -64,7 +64,7 @@ extension ScheduleEntity {
 
 extension WorkoutEntity {
     func toWorkout() throws -> Workout {
-        guard let day = self.day else {
+        guard let day = self.name else {
             throw CoreDataError.invalidData("Workout day is missing")
         }
         
@@ -78,6 +78,6 @@ extension WorkoutEntity {
             }
         }
         
-        return Workout(id: self.identifier!, day: day, exercises: exercises)
+        return Workout(id: self.identifier!, name: day, exercises: exercises)
     }
 }

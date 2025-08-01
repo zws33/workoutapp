@@ -300,7 +300,7 @@ class WorkoutRepositoryImpl: WorkoutRepository {
             for workout in schedule.workouts {
                 let workoutEntity = WorkoutEntity(context: backgroundContext)
                 workoutEntity.identifier = workout.id
-                workoutEntity.day = workout.day
+                workoutEntity.name = workout.name
                 workoutEntity.schedule = scheduleEntity
 
                 for (groupKey, exercises) in workout.exercises {
@@ -395,7 +395,7 @@ struct FakeWorkoutRepository: WorkoutRepository {
             workouts: [
                 Workout(
                     id: UUID().uuidString,
-                    day: "Monday",
+                    name: "Monday",
                     exercises: [
                         "Primary": [
                             Exercise(
@@ -429,7 +429,7 @@ struct FakeWorkoutRepository: WorkoutRepository {
                 ),
                 Workout(
                     id: UUID().uuidString,
-                    day: "Tuesday",
+                    name: "Tuesday",
                     exercises: [
                         "Cardio": [
                             Exercise(
@@ -463,7 +463,7 @@ struct FakeWorkoutRepository: WorkoutRepository {
                 ),
                 Workout(
                     id: UUID().uuidString,
-                    day: "Wednesday",
+                    name: "Wednesday",
                     exercises: [
                         "Primary": [
                             Exercise(

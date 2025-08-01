@@ -2,7 +2,7 @@ import SwiftUI
 
 struct WorkoutView: View {
     @StateObject private var viewModel: WorkoutViewModel
-    @State private var selectedDay: String?
+    @State private var selectedWorkoutName: String?
     
     init(workoutRepository: WorkoutRepository, selectedWeek: String) {
         _viewModel = StateObject(
@@ -29,7 +29,7 @@ struct WorkoutView: View {
                 case .data(let group):
                     ExerciseList(
                         workouts: group.workouts,
-                        selectedDay: $selectedDay
+                        selectedDay: $selectedWorkoutName
                     )
                     .navigationTitle(group.name) 
                 }
@@ -38,9 +38,9 @@ struct WorkoutView: View {
             .animation(.default, value: viewModel.state)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu(selectedDay != nil ? "Day \(selectedDay!)" : "Select Day") {
-                        ForEach(groupedDays, id: \.self) { day in
-                            Button("Day \(day)") { selectedDay = day }
+                    Menu(selectedWorkoutName != nil ? selectedWorkoutName! : "Select Workout") {
+                        ForEach(groupedWorkouts, id: \.self) { name in
+                            Button(name) { selectedWorkoutName = name }
                         }
                     }
                     .padding(.horizontal, 10)
@@ -50,16 +50,16 @@ struct WorkoutView: View {
             }
             .onChange(of: viewModel.state) { oldState, newState in
                 if case let .data(workoutGroup) = newState,
-                   selectedDay == nil {
-                    selectedDay = workoutGroup.workouts.first?.day
+                   selectedWorkoutName == nil {
+                    selectedWorkoutName = workoutGroup.workouts.first?.name
                 }
             }
         }
     }
 
-    private var groupedDays: [String] {
-        if case let .data(g) = viewModel.state {
-            g.workouts.map(\.day).sorted()
+    private var groupedWorkouts: [String] {
+        if case let .data(schedule) = viewModel.state {
+            schedule.workouts.map(\.name).sorted()
         } else { [] }
     }
 }
@@ -71,7 +71,7 @@ struct ExerciseList: View {
 
     var body: some View {
         if let day = selectedDay,
-           let workout = workouts.first(where: { $0.day == day }) {
+           let workout = workouts.first(where: { $0.name == day }) {
 
             List {
                 ForEach(sortedSections(in: workout), id: \.self) { key in

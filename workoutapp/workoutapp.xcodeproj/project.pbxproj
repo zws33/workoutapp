@@ -25,6 +25,7 @@
 		369704DD2D5F909B0059511D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 369704DC2D5F909B0059511D /* GoogleSignIn */; };
 		36D2F0A92DEF165400461CB9 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0A82DEF165400461CB9 /* FirebaseAuth */; };
 		36D2F0AD2DEF1EA600461CB9 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 36D2F0AC2DEF1EA600461CB9 /* FirebaseCore */; };
+		36ECA6062E3CE43F00284D96 /* WorkoutModelV3toV4Mapping.xcmappingmodel in Sources */ = {isa = PBXBuildFile; fileRef = 36ECA6052E3CE43F00284D96 /* WorkoutModelV3toV4Mapping.xcmappingmodel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,8 @@
 		369704AC2D5F8DBE0059511D /* workoutapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = workoutapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704BC2D5F8DBF0059511D /* workoutappTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		369704C62D5F8DBF0059511D /* workoutappUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = workoutappUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		36ECA5FD2E3CDDB500284D96 /* WorkoutModelV4.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = WorkoutModelV4.xcdatamodel; sourceTree = "<group>"; };
+		36ECA6052E3CE43F00284D96 /* WorkoutModelV3toV4Mapping.xcmappingmodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcmappingmodel; path = WorkoutModelV3toV4Mapping.xcmappingmodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -171,6 +174,7 @@
 			children = (
 				367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */,
 				367ED8DA2DFFB7C900C79CFE /* Model.xcmappingmodel */,
+				36ECA6052E3CE43F00284D96 /* WorkoutModelV3toV4Mapping.xcmappingmodel */,
 				367ED80F2DFB259800C79CFE /* workoutapp */,
 				369704BF2D5F8DBF0059511D /* workoutappTests */,
 				369704C92D5F8DBF0059511D /* workoutappUITests */,
@@ -347,6 +351,7 @@
 			files = (
 				367ED8DB2DFFB7C900C79CFE /* Model.xcmappingmodel in Sources */,
 				367ED8182DFB259800C79CFE /* AuthManager.swift in Sources */,
+				36ECA6062E3CE43F00284D96 /* WorkoutModelV3toV4Mapping.xcmappingmodel in Sources */,
 				367ED8192DFB259800C79CFE /* Errors.swift in Sources */,
 				367ED81A2DFB259800C79CFE /* Models.swift in Sources */,
 				367ED81C2DFB259800C79CFE /* SignInView.swift in Sources */,
@@ -726,11 +731,12 @@
 		367ED7F52DFB1F4900C79CFE /* WorkoutModel.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
+				36ECA5FD2E3CDDB500284D96 /* WorkoutModelV4.xcdatamodel */,
 				367ED8EA2E01EB9000C79CFE /* WorkoutModeV3.xcdatamodel */,
 				367ED8D92DFFB38A00C79CFE /* WorkoutModel 2.xcdatamodel */,
 				367ED7F62DFB1F4900C79CFE /* WorkoutModel.xcdatamodel */,
 			);
-			currentVersion = 367ED8EA2E01EB9000C79CFE /* WorkoutModeV3.xcdatamodel */;
+			currentVersion = 36ECA5FD2E3CDDB500284D96 /* WorkoutModelV4.xcdatamodel */;
 			path = WorkoutModel.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

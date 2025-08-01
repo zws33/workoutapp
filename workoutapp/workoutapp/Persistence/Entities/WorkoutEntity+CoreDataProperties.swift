@@ -2,7 +2,7 @@
 //  WorkoutEntity+CoreDataProperties.swift
 //  workoutapp
 //
-//  Created by Zach Smith on 6/17/25.
+//  Created by Zach Smith on 8/1/25.
 //
 //
 
@@ -16,7 +16,7 @@ extension WorkoutEntity {
         return NSFetchRequest<WorkoutEntity>(entityName: "WorkoutEntity")
     }
 
-    @NSManaged public var day: String?
+    @NSManaged public var name: String?
     @NSManaged public var identifier: String?
     @NSManaged public var exerciseGroups: NSSet?
     @NSManaged public var schedule: ScheduleEntity?

@@ -26,15 +26,15 @@ struct Schedule: Codable, Equatable {
 
 struct Workout: Codable, Equatable {
     let id: String
-    let day: String
+    let name: String
     let exercises: [String: [Exercise]]
     init(
         id: String,
-        day: String,
+        name: String,
         exercises: [String : [Exercise]]
     ) {
         self.id = id
-        self.day = day
+        self.name = name
         self.exercises = exercises
     }
 }

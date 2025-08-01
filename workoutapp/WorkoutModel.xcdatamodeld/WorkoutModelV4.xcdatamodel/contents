@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="ExerciseEntity" representedClassName="ExerciseEntity" syncable="YES">
+        <attribute name="identifier" optional="YES" attributeType="String" elementID="id"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="reps" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="sets" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="weight" optional="YES" attributeType="String"/>
+        <relationship name="exerciseGroup" maxCount="1" deletionRule="Nullify" destinationEntity="ExerciseGroupEntity" inverseName="exercises" inverseEntity="ExerciseGroupEntity"/>
+    </entity>
+    <entity name="ExerciseGroupEntity" representedClassName="ExerciseGroupEntity" syncable="YES">
+        <attribute name="groupKey" attributeType="String"/>
+        <relationship name="exercises" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExerciseEntity" inverseName="exerciseGroup" inverseEntity="ExerciseEntity"/>
+        <relationship name="workout" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WorkoutEntity" inverseName="exerciseGroups" inverseEntity="WorkoutEntity"/>
+    </entity>
+    <entity name="ScheduleEntity" representedClassName="ScheduleEntity" syncable="YES">
+        <attribute name="identifier" optional="YES" attributeType="String" elementID="id"/>
+        <attribute name="name" attributeType="String"/>
+        <relationship name="workouts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="WorkoutEntity" inverseName="schedule" inverseEntity="WorkoutEntity"/>
+    </entity>
+    <entity name="WorkoutEntity" representedClassName="WorkoutEntity" syncable="YES">
+        <attribute name="identifier" optional="YES" attributeType="String" elementID="id"/>
+        <attribute name="name" attributeType="String"/>
+        <relationship name="exerciseGroups" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExerciseGroupEntity" inverseName="workout" inverseEntity="ExerciseGroupEntity"/>
+        <relationship name="schedule" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScheduleEntity" inverseName="workouts" inverseEntity="ScheduleEntity"/>
+    </entity>
+</model>
